@@ -1,0 +1,24 @@
+version: 2
+
+models:
+  - name: int_economic_indicators
+    description: "Joined and pivoted economic indicators from World Bank and FRED. One row per country per year."
+    columns:
+      - name: country_code
+        description: "ISO3 country code"
+      - name: country_name
+        description: "Full country name"
+      - name: observation_year
+        description: "Year of observation"
+      - name: gdp_usd
+        description: "GDP in current USD from World Bank"
+      - name: inflation_rate
+        description: "Annual inflation rate from World Bank"
+      - name: unemployment_rate
+        description: "Unemployment rate from World Bank"
+      - name: us_unemployment_fred
+        description: "US unemployment rate from FRED for the same year"
+      - name: us_cpi_fred
+        description: "US CPI index value from FRED for the same year"
+      - name: us_real_gnp_fred
+        description: "US real GNP from FRED for the same year"

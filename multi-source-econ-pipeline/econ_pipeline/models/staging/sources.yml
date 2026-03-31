@@ -1,0 +1,9 @@
+version: 2
+
+sources:
+  - name: raw
+    database: ECON_DB
+    schema: RAW
+    tables:
+      - name: fred_observations
+      - name: worldbank_indicators

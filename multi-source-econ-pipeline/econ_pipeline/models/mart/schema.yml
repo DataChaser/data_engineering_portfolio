@@ -1,0 +1,36 @@
+version: 2
+
+models:
+  - name: mart_global_economic_snapshot
+    description: "Final economic snapshot table. One row per country per year from 2000 onwards."
+    columns:
+      - name: country_code
+        description: "ISO3 country code"
+        data_tests:
+          - not_null
+      - name: country_name
+        description: "Full country name"
+        data_tests:
+          - not_null
+      - name: observation_year
+        description: "Year of observation"
+        data_tests:
+          - not_null
+      - name: gdp_billions_usd
+        description: "GDP in billions USD"
+      - name: inflation_rate_pct
+        description: "Annual inflation rate as a percentage"
+      - name: unemployment_rate_pct
+        description: "Unemployment rate as a percentage"
+      - name: us_unemployment_fred_pct
+        description: "US unemployment rate from FRED for the same year"
+      - name: us_cpi_index
+        description: "US CPI index value from FRED for the same year"
+      - name: us_real_gnp_trillions
+        description: "US real GNP in trillions from FRED for the same year"
+      - name: unemployment_vs_us_delta
+        description: "Country unemployment minus US unemployment. Positive means higher than US."
+      - name: dbt_updated_at
+        description: "Timestamp of when this record was last built by dbt"
+        data_tests:
+          - not_null

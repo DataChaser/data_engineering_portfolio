@@ -1,0 +1,17 @@
+# environment
+.env
+venv/
+
+# dbt
+target/
+dbt_packages/
+logs/
+
+# python
+__pycache__/
+*.pyc
+*.pyo
+
+# os
+.DS_Store
+Thumbs.db

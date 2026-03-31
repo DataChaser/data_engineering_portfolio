@@ -1,0 +1,47 @@
+version: 2
+
+models:
+  - name: stg_fred_observations
+    description: "Cleaned FRED economic observations. One row per series per date."
+    columns:
+      - name: series_id
+        description: "FRED series identifier e.g. UNRATE, CPIAUCSL"
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['GNPCA', 'UNRATE', 'CPIAUCSL']
+      - name: observation_date
+        description: "Date of the observation"
+        data_tests:
+          - not_null
+      - name: indicator_value
+        description: "Numeric value of the indicator"
+        data_tests:
+          - not_null
+
+  - name: stg_worldbank_indicators
+    description: "Cleaned World Bank indicators. One row per country per indicator per year."
+    columns:
+      - name: country_code
+        description: "ISO3 country code"
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['USA', 'GBR', 'DEU', 'JPN', 'IND', 'BRA', 'CHN']
+      - name: indicator_id
+        description: "World Bank indicator code"
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['NY.GDP.MKTP.CD', 'FP.CPI.TOTL.ZG', 'SL.UEM.TOTL.ZS']
+      - name: observation_year
+        description: "Year of the observation"
+        data_tests:
+          - not_null
+      - name: indicator_value
+        description: "Numeric value of the indicator"
+        data_tests:
+          - not_null
