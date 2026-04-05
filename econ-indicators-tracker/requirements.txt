@@ -1,7 +1,8 @@
-streamlit
-pandas
-numpy
-plotly
-requests
-snowflake-connector-python
-python-dotenv
+streamlit==1.43.2
+pandas==2.2.3
+numpy==2.2.3
+plotly==6.0.1
+requests==2.32.3
+snowflake-connector-python==3.12.3
+dbt-snowflake==1.9.3
+python-dotenv==1.1.0

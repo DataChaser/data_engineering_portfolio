@@ -77,8 +77,8 @@ cols = st.columns(len(indicators))
 for col, (_, row) in zip(cols, latest.iterrows()):
     col.metric(
         label=row["indicator_name"],
-        value=f"{row['value']:.2f}%",
-        delta=f"{row['mom_change']:.2f}%" if pd.notna(row["mom_change"]) else "N/A",
+        value=f"{row['value']:.2f}",
+        delta=f"{row['mom_change']:.2f}" if pd.notna(row["mom_change"]) else "N/A",
         delta_color=get_delta_color(row["indicator_name"]),
     )
 
