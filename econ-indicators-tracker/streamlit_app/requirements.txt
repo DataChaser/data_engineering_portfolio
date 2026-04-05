@@ -1,0 +1,7 @@
+streamlit
+pandas
+numpy
+plotly
+requests
+snowflake-connector-python
+python-dotenv
