@@ -1,0 +1,29 @@
+version: 2
+
+models:
+  - name: stg_fred_observations
+    description: "Cleaned and standardized FRED observations. One row per indicator per date."
+    columns:
+      - name: observation_date
+        description: "Observation date"
+        tests:
+          - not_null
+
+      - name: indicator_name
+        description: "Human readable indicator name"
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values:
+                  - "GDP Growth"
+                  - "Inflation"
+                  - "Unemployment"
+                  - "Interest Rate"
+                  - "Housing Starts"
+                  - "Retail Sales"
+
+      - name: series_id
+        description: "FRED series identifier"
+        tests:
+          - not_null

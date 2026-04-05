@@ -1,0 +1,20 @@
+version: 2
+
+sources:
+  - name: raw
+    database: ECONOMIC_INDICATORS
+    schema: RAW
+    tables:
+      - name: fred_observations
+        description: "Raw observations loaded from the FRED API. One row per indicator per date."
+        columns:
+          - name: date
+            description: "Observation date"
+          - name: value
+            description: "Indicator value. Can be null for missing periods."
+          - name: indicator_name
+            description: "Human readable indicator name e.g. GDP Growth"
+          - name: series_id
+            description: "FRED series identifier e.g. UNRATE"
+          - name: loaded_at
+            description: "Timestamp when this row was loaded into Snowflake"
