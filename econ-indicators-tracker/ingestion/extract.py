@@ -10,12 +10,12 @@ FRED_API_KEY = os.getenv("FRED_API_KEY")
 FRED_BASE_URL = "https://api.stlouisfed.org/fred/series/observations"
 
 INDICATORS = {
-    "GDP Growth": "GDP",
-    "Inflation": "CPIAUCSL",
-    "Unemployment": "UNRATE",
-    "Interest Rate": "FEDFUNDS",
-    "Housing Starts": "HOUST",
-    "Retail Sales": "RSXFS",
+    "GDP (Billions USD)": "GDP",
+    "CPI (Index)": "CPIAUCSL",
+    "Unemployment Rate": "UNRATE",
+    "Federal Funds Rate": "FEDFUNDS",
+    "Housing Starts (000s)": "HOUST",
+    "Retail Sales (Millions USD)": "RSXFS",
 }
 
 

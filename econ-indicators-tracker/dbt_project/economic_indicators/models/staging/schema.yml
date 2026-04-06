@@ -16,12 +16,12 @@ models:
           - accepted_values:
               arguments:
                 values:
-                  - "GDP Growth"
-                  - "Inflation"
-                  - "Unemployment"
-                  - "Interest Rate"
-                  - "Housing Starts"
-                  - "Retail Sales"
+                  - "GDP (Billions USD)"
+                  - "CPI (Index)"
+                  - "Unemployment Rate"
+                  - "Federal Funds Rate"
+                  - "Housing Starts (000s)"
+                  - "Retail Sales (Millions USD)"
 
       - name: series_id
         description: "FRED series identifier"
