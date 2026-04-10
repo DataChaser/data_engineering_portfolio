@@ -72,7 +72,7 @@ econ-pipeline/
 
 ### Installation
 ```bash
-git clone https://github.com/yourusername/econ-pipeline.git
+git clone https://github.com/DataChaser/econ-pipeline.git
 cd econ-pipeline
 python -m venv your_virtual_environment_name
 source venv/bin/activate  # If using Windows: venv\Scripts\activate
