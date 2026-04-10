@@ -1,0 +1,18 @@
+version: 2
+
+models:
+  - name: int_trips_joined
+    description: "Trip records joined with pickup and dropoff zone information. One row per trip."
+    columns:
+      - name: pickup_datetime
+        tests:
+          - not_null
+
+      - name: pickup_borough
+        description: "Borough where trip started -- from zone lookup join"
+
+      - name: dropoff_borough
+        description: "Borough where trip ended -- from zone lookup join"
+
+      - name: trip_duration_minutes
+        description: "Trip duration in minutes -- derived in staging"
