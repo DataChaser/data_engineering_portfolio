@@ -96,7 +96,7 @@ nyc-taxi-data-pipeline/
 
 ```bash
 # 1. Clone and navigate
-git clone https://github.com/your-username/data-engineering-portfolio.git
+git clone https://github.com/DataChaser/data-engineering-portfolio.git
 cd data-engineering-portfolio/nyc-taxi-data-pipeline
 
 # 2. Install dependencies
