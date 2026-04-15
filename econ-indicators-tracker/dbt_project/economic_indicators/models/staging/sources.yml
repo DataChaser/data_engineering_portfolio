@@ -4,10 +4,11 @@ sources:
   - name: raw
     database: ECONOMIC_INDICATORS
     schema: RAW
-    freshness:
-      warn_after: {count: 45, period: day}
-      error_after: {count: 60, period: day}
-    loaded_at_field: LOADED_AT
+    config:
+      freshness:
+        warn_after: {count: 45, period: day}
+        error_after: {count: 60, period: day}
+      loaded_at_field: LOADED_AT
     tables:
       - name: fred_observations
         description: "Raw observations loaded from the FRED API. One row per indicator per date."
