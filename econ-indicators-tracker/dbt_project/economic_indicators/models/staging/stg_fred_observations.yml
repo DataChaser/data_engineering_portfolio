@@ -1,0 +1,35 @@
+version: 2
+
+models:
+  - name: stg_fred_observations
+    description: >
+      Cleaned and standardized FRED observations. One row per indicator per date.
+      Casts date to DATE type, casts value to FLOAT, filters null dates.
+      Materialized as a view.
+      This is only consumed by downstream dbt models.
+
+    columns:
+      - name: observation_date
+        tests:
+          - not_null
+
+      - name: indicator_name
+        tests:
+          - not_null
+          - accepted_values:
+              values:
+                - "GDP (Billions USD)"
+                - "CPI (Index)"
+                - "Unemployment Rate"
+                - "Federal Funds Rate"
+                - "Housing Starts (000s)"
+                - "Retail Sales (Millions USD)"
+
+      - name: series_id
+        tests:
+          - not_null
+
+      - name: value
+        description: "Indicator value cast to FLOAT. FRED missing values returned as '.' are converted to NULL in the ingestion layer before reaching this table."
+
+      - name: loaded_at
