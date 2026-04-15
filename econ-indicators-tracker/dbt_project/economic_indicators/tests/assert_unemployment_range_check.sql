@@ -3,5 +3,5 @@ select
     indicator_name,
     value
 from {{ ref('mart_economic_indicators') }}
-where indicator_name = 'Unemployment Rate'
+where series_id = 'UNRATE'
   and (value < 0 or value > 25)
