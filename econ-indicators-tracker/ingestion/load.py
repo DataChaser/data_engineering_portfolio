@@ -6,7 +6,6 @@ from extract import fetch_all_indicators
 
 load_dotenv()
 
-
 def get_snowflake_connection():
     return snowflake.connector.connect(
         account=os.getenv("SNOWFLAKE_ACCOUNT"),
@@ -31,7 +30,8 @@ def create_raw_table(cursor):
     """)
     print("Raw table ready.")
 
-
+# Table is first truncated (deleting all records) and then reloaded with all data
+# Reason for this is that economic data gets revised frequently
 def truncate_and_load(cursor, df: pd.DataFrame):
     cursor.execute("TRUNCATE TABLE RAW.FRED_OBSERVATIONS")
     print("Table truncated.")

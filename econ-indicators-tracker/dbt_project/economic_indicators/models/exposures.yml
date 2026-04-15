@@ -1,0 +1,18 @@
+version: 2
+
+exposures:
+
+  - name: economic_indicators_dashboard
+    type: dashboard
+    url: https://econ-indicators-tracker.streamlit.app/
+
+    description: >
+      Live Streamlit dashboard tracking 6 US macroeconomic indicators.
+      Deployed on Streamlit Cloud. Displays current values, month-on-month
+      percentage change, and historical trend charts per indicator.
+      Queries mart_economic_indicators table directly via Snowflake connector.
+    depends_on:
+      - ref('mart_economic_indicators')
+    owner:
+      name: James Johnson
+      email: jamietech3@gmail.com

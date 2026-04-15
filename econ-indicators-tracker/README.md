@@ -71,7 +71,7 @@ Builds on staging to calculate month-on-month percentage change per indicator us
 
 ### 1. Clone the repo
 
-    git clone https://github.com/DataChaser/data-engineering-portfolio.git
+    git clone https://github.com/your-username/data-engineering-portfolio.git
     cd data-engineering-portfolio/econ-indicators-tracker
 
 ### 2. Create a virtual environment and install dependencies
