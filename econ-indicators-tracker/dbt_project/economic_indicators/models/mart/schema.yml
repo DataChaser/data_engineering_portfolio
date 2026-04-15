@@ -2,23 +2,37 @@ version: 2
 
 models:
   - name: mart_economic_indicators
-    description: "Final analytics table for the Economic Indicators dashboard. One row per indicator per date with MoM change pre-calculated."
+    description: >
+      Final analytics-ready table for the Economic Indicators dashboard.
+      One row per indicator per date. Contains current values, previous period values, and period-on-period change. 
+      Materialized as a physical table so dashboard queries hit pre-computed results rather than recalculating on every visit. 
+      This is the only model queried directly by the Streamlit dashboard.
+
     columns:
       - name: observation_date
-        description: "Observation date"
         tests:
           - not_null
 
       - name: indicator_name
-        description: "Human readable indicator name"
         tests:
           - not_null
 
+      - name: series_id
+
       - name: value
-        description: "Indicator value for this period"
+        description: >
+          Raw indicator value as reported by FRED.
+          Units vary by indicator - percent for UNRATE and FEDFUNDS,
+          billions USD for GDP, index value for CPIAUCSL,
+          thousands of units for HOUST, millions USD for RSXFS.
 
       - name: prev_value
-        description: "Indicator value for the previous period. Null for the first row of each indicator."
 
       - name: mom_change
-        description: "Month on month change. Null for the first row of each indicator."
+        description: >
+          Period-on-period change. For UNRATE and FEDFUNDS, this is a percentage point change (current minus previous). 
+          For all other series, this is a true percentage change ((current - previous) / previous) * 100, rounded to 2 decimal places.
+          Null for the first observation of each indicator or if previous value is zero.
+
+      - name: dbt_updated_at
+        description: "Timestamp of the last dbt build. Shown in the dashboard footer."

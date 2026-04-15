@@ -4,6 +4,10 @@ sources:
   - name: raw
     database: ECONOMIC_INDICATORS
     schema: RAW
+    freshness:
+      warn_after: {count: 45, period: day}
+      error_after: {count: 60, period: day}
+    loaded_at_field: LOADED_AT
     tables:
       - name: fred_observations
         description: "Raw observations loaded from the FRED API. One row per indicator per date."
@@ -11,10 +15,10 @@ sources:
           - name: date
             description: "Observation date"
           - name: value
-            description: "Indicator value. Can be null for missing periods."
+            description: "Indicator value as returned by FRED. Can be null for missing periods."
           - name: indicator_name
-            description: "Human readable indicator name e.g. GDP Growth"
+            description: "Human readable indicator name e.g. Unemployment Rate"
           - name: series_id
             description: "FRED series identifier e.g. UNRATE"
           - name: loaded_at
-            description: "Timestamp when this row was loaded into Snowflake"
+            description: "Timestamp when this row was loaded into Snowflake by load.py"
