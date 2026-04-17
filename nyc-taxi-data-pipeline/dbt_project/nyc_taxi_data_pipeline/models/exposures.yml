@@ -1,0 +1,20 @@
+version: 2
+
+exposures:
+  - name: nyc_taxi_dashboard
+    type: dashboard
+    url: https://nyc-taxi-data.streamlit.app/
+    description: >
+      Streamlit dashboard visualising NYC yellow taxi trip data.
+      Pulls directly from all four mart models in Snowflake.
+      Charts cover daily revenue by borough, pickup zone activity by hour, payment type breakdown, and trip duration analysis.
+
+    depends_on:
+      - ref('mart_daily_revenue')
+      - ref('mart_pickup_zones')
+      - ref('mart_payment_summary')
+      - ref('mart_trip_duration')
+
+    owner:
+      name: James Johnson
+      email: jamietech3@gmail.com
