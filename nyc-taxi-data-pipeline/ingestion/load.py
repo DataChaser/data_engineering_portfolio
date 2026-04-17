@@ -1,3 +1,4 @@
+import pyarrow.parquet as pq
 import pandas as pd
 from snowflake.connector.pandas_tools import write_pandas
 import os
@@ -9,20 +10,9 @@ months = ['2025-11', '2025-12', '2026-01']
 
 def load_trip_file(conn, year_month: str):
     filename = f"yellow_tripdata_{year_month}.parquet"
-    filepath= os.path.join(data_dir, filename)
+    filepath = os.path.join(data_dir, filename)
 
     print(f'Loading {filename}')
-
-    df = pd.read_parquet(filepath)
-
-    for col in df.columns:
-        df[col] = df[col].astype(str)
-
-    df = df.replace({'NaT': None, 'nan': None})
-    df['SOURCE_MONTH'] = year_month
-    df.columns = [col.upper() for col in df.columns]
-
-    print(f"Rows to load: {len(df):,} | Columns: {len(df.columns)}")
 
     cursor = conn.cursor()
 
@@ -39,45 +29,62 @@ def load_trip_file(conn, year_month: str):
         """)
         already_loaded = cursor.fetchone()[0]
         if already_loaded > 0:
-            print('Data already loaded. Skipping this')
+            print(f'Data already loaded for {year_month}. Skipping.')
             cursor.close()
             return
-        
+
     cursor.close()
 
-    success, nchunks, nrows, _ = write_pandas(
-        conn = conn,
-        df = df,
-        table_name = 'RAW_TRIPS',
-        database = 'TAXI_DB',
-        schema = 'RAW',
-        auto_create_table = True,
-        overwrite = False
-    )
+    parquet_file = pq.ParquetFile(filepath)
+    total_row_groups = parquet_file.metadata.num_row_groups
+    print(f"Total row groups: {total_row_groups}")
 
-    if success:
-        print(f'Data load successful. {nrows:,} rows loaded in {nchunks} chunks')
-    else:
-        print(f'Data load failed for {year_month}')
+    for i in range(total_row_groups):
+        chunk = parquet_file.read_row_group(i).to_pandas()
+
+        for col in chunk.columns:
+            chunk[col] = chunk[col].astype(str)
+        chunk = chunk.replace({'NaT': None, 'nan': None})
+        chunk['SOURCE_MONTH'] = year_month
+        chunk.columns = [col.upper() for col in chunk.columns]
+
+        print(f"Loading row group {i+1}/{total_row_groups} - {len(chunk):,} rows")
+
+        success, _, nrows, _ = write_pandas(
+            conn=conn,
+            df=chunk,
+            table_name='RAW_TRIPS',
+            database='TAXI_DB',
+            schema='RAW',
+            auto_create_table=True,
+            overwrite=False
+        )
+
+        if not success:
+            raise Exception(f"Row group {i+1} failed to load for {year_month}")
+
+        print(f"Row group {i+1} loaded - {nrows:,} rows")
+
+    print(f"Load complete for {year_month}")
 
 
 def load_zone_lookup(conn):
     filepath = os.path.join(data_dir, 'taxi_zone_lookup.csv')
 
-    df = pd.read_csv(filepath, dtype = str)
+    df = pd.read_csv(filepath, dtype=str)
     df = df.replace({'nan': None})
     df.columns = [col.upper() for col in df.columns]
 
     print('Loading taxi_zone_lookup.csv')
 
     success, nchunks, nrows, _ = write_pandas(
-        conn = conn,
-        df = df,
-        table_name = 'RAW_ZONE_LOOKUP',
-        database = 'TAXI_DB',
-        schema = 'RAW',
-        auto_create_table = True,
-        overwrite = True
+        conn=conn,
+        df=df,
+        table_name='RAW_ZONE_LOOKUP',
+        database='TAXI_DB',
+        schema='RAW',
+        auto_create_table=True,
+        overwrite=True
     )
 
     if success:
@@ -85,13 +92,12 @@ def load_zone_lookup(conn):
     else:
         print('Data load failed.')
 
+
 def verify_load(conn):
     cursor = conn.cursor()
 
     print('Checking row count of the raw trips data')
-    cursor.execute("""
-        SELECT COUNT(*) FROM TAXI_DB.RAW.RAW_TRIPS
-    """)
+    cursor.execute("SELECT COUNT(*) FROM TAXI_DB.RAW.RAW_TRIPS")
     rows = cursor.fetchone()[0]
     print(f"Total rows is {rows}")
 
@@ -107,9 +113,7 @@ def verify_load(conn):
         print(f"{row[0]}: {row[1]}")
 
     print('Checking zone lookup table')
-    cursor.execute("""
-        SELECT COUNT(*) FROM TAXI_DB.RAW.RAW_ZONE_LOOKUP
-    """)
+    cursor.execute("SELECT COUNT(*) FROM TAXI_DB.RAW.RAW_ZONE_LOOKUP")
     lookup_rows = cursor.fetchone()[0]
     print(f'Lookup table has {lookup_rows} rows. (expected: 265)')
 
@@ -122,9 +126,10 @@ def verify_load(conn):
     """)
     print("Sample rows from RAW_TRIPS:")
     for row in cursor.fetchall():
-        print(f"{row}")
+        print(row)
 
     cursor.close()
+
 
 if __name__ == "__main__":
     conn = get_connection()
@@ -132,11 +137,9 @@ if __name__ == "__main__":
 
     for month in months:
         load_trip_file(conn, month)
-        
+
     load_zone_lookup(conn)
     verify_load(conn)
 
     conn.close()
     print('Process has been completed and connection is closed')
-
-

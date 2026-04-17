@@ -1,9 +1,13 @@
--- Trip volume by pickup zone and hour of day.
+{{
+    config(
+        materialized='table'
+    )
+}}
+
+-- Trip volume by pickup zone and hour of day. Refreshes the full table on every run as there is no dates here and this is aggregation by pickup zones.
 
 with joined as (
-
     select * from {{ ref('int_trips_joined') }}
-
 ),
 
 aggregated as (
@@ -16,9 +20,8 @@ aggregated as (
         round(avg(fare_amount), 2) as avg_fare,
         round(avg(trip_distance), 2) as avg_distance_miles,
         round(avg(trip_duration_minutes), 1) as avg_duration_minutes
-
     from joined
-    where pickup_zone is not null
+    where pickup_zone is not null and pickup_borough is not null
     group by
         pickup_borough,
         pickup_zone,

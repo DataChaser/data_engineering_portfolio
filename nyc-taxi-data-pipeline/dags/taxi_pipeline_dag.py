@@ -1,3 +1,4 @@
+import pyarrow.parquet as pq
 import sys
 import os
 import subprocess
@@ -7,46 +8,62 @@ from airflow import DAG
 from airflow.operators.python import PythonOperator, BranchPythonOperator
 from airflow.utils.trigger_rule import TriggerRule
 
+# This is where docker-compose.override.yml mounts your project.
+# All imports from ingestion/, expectations/ etc. work because of this.
 PROJECT_ROOT = '/opt/airflow/project'
 sys.path.insert(0, PROJECT_ROOT)
 
-from ingestion.load import load_trip_file, load_zone_lookup, get_connection
-from expectations.taxi_raw_suite import run_validation
-
+# Which month this pipeline run processes.
+# Change this when you want to process a different month.
 TARGET_MONTH = "2026-01"
+
+# Where dbt project lives inside the container.
 DBT_PROJECT_DIR = os.path.join(PROJECT_ROOT, 'dbt_project', 'nyc_taxi_data_pipeline')
+
+# dbt profiles.yml needs to know where to find credentials.
+# By default dbt looks in ~/.dbt/ — we point it to our project folder instead.
+DBT_PROFILES_DIR = os.path.join(PROJECT_ROOT, 'dbt_project', 'nyc_taxi_data_pipeline')
 
 
 def task_download_data(**context):
+    """Download raw parquet file and zone lookup for TARGET_MONTH."""
     from exploration.explore import download_trip_data, download_zone_lookup
-    print(f"Downloading data for month: {TARGET_MONTH}")
-    trip_filepath = download_trip_data(TARGET_MONTH)
-    zone_filepath = download_zone_lookup()
-    print(f"Trip file: {trip_filepath}")
-    print(f"Zone file: {zone_filepath}")
-    return f"Downloaded {TARGET_MONTH}"
+    print(f"Downloading data for {TARGET_MONTH}")
+    download_trip_data(TARGET_MONTH)
+    download_zone_lookup()
+    print("Download complete")
 
 
 def task_load_raw(**context):
-    print(f"Loading raw data for month: {TARGET_MONTH}")
+    """Load downloaded parquet into Snowflake RAW_TRIPS. Skips if already loaded."""
+    from ingestion.load import load_trip_file, load_zone_lookup
+    from utils.snowflake_utils import get_connection
+    print(f"Loading raw data for {TARGET_MONTH}")
     conn = get_connection()
     load_trip_file(conn, TARGET_MONTH)
     load_zone_lookup(conn)
     conn.close()
     print("Raw load complete")
-    return f"Loaded {TARGET_MONTH}"
 
 
 def task_run_gx(**context):
-    print(f"Running GX validation for month: {TARGET_MONTH}")
+    """Run Great Expectations validation on raw data. Returns True/False."""
+    from expectations.taxi_raw_suite import run_validation
+    print(f"Running GX validation for {TARGET_MONTH}")
     passed = run_validation(TARGET_MONTH)
-    print(f"GX validation result: {'PASS' if passed else 'FAIL'}")
+    print(f"GX result: {'PASS' if passed else 'FAIL'}")
+    # Return value is stored in XCom automatically — branch task reads it next
     return passed
 
 
 def task_branch_on_gx(**context):
+    """
+    Read GX result from XCom and decide which path to take.
+    If GX passed -> run dbt.
+    If GX failed -> log failure and skip dbt.
+    """
     gx_passed = context['ti'].xcom_pull(task_ids='run_gx_validation')
-    print(f"GX result: {gx_passed}")
+    print(f"GX passed: {gx_passed}")
     if gx_passed:
         return 'run_dbt'
     else:
@@ -54,22 +71,34 @@ def task_branch_on_gx(**context):
 
 
 def task_run_dbt(**context):
+    """Run dbt build inside the container using subprocess."""
     print("Running dbt build...")
     result = subprocess.run(
-        ['dbt', 'build', '--project-dir', DBT_PROJECT_DIR],
+        [
+            'dbt', 'build',
+            '--project-dir', DBT_PROJECT_DIR,
+            '--profiles-dir', DBT_PROFILES_DIR,
+            '--no-write-json',          # don't write run artifacts to disk
+            '--no-partial-parse',
+            '--target-path', '/tmp/dbt_target',
+            '--log-path', '/tmp/dbt_logs'  # write logs to /tmp which is writable
+        ],
         capture_output=True,
         text=True
     )
+    # Always print stdout so logs are visible in Airflow UI
     print(result.stdout)
     if result.returncode != 0:
         print(result.stderr)
-        raise Exception(f"dbt build failed with return code {result.returncode}")
-    print("dbt build completed successfully")
+        raise Exception(f"dbt build failed:\n{result.stderr}")
+    print("dbt build complete")
     return True
 
 
 def task_log_failure(**context):
-    print("GX validation failed — logging to Snowflake")
+    """Log GX validation failure to Snowflake PIPELINE_LOGS table."""
+    from utils.snowflake_utils import get_connection
+    print("GX failed — logging to Snowflake")
     conn = get_connection()
     cursor = conn.cursor()
     cursor.execute("""
@@ -88,10 +117,13 @@ def task_log_failure(**context):
     print("Failure logged")
 
 
-def task_log_success(**context):
-    print("Logging pipeline result to Snowflake")
+def task_log_result(**context):
+    """Log final pipeline status to Snowflake PIPELINE_LOGS table."""
+    from utils.snowflake_utils import get_connection
+    # XCom pull from run_dbt — will be None if dbt was skipped due to GX failure
     dbt_result = context['ti'].xcom_pull(task_ids='run_dbt')
     status = 'SUCCESS' if dbt_result else 'FAILED'
+    print(f"Logging final status: {status}")
     conn = get_connection()
     cursor = conn.cursor()
     cursor.execute("""
@@ -110,11 +142,12 @@ def task_log_success(**context):
     print(f"Logged: {status}")
 
 
+# DAG definition
 with DAG(
     dag_id='taxi_pipeline',
-    schedule='0 0 1 * *',
+    schedule='0 0 1 * *',       # runs at midnight on the 1st of every month
     start_date=datetime(2025, 11, 1),
-    catchup=False,
+    catchup=False,               # don't backfill missed runs
     tags=['taxi', 'monthly', 'pipeline'],
     description='Monthly NYC yellow taxi pipeline'
 ) as dag:
@@ -151,10 +184,15 @@ with DAG(
 
     log_result = PythonOperator(
         task_id='log_result',
-        python_callable=task_log_success,
+        python_callable=task_log_result,
+        # ALL_DONE means this runs regardless of whether run_dbt or log_failure ran
         trigger_rule=TriggerRule.ALL_DONE,
     )
 
+    # Pipeline flow:
+    # download -> load -> validate -> branch
+    # branch -> dbt -> log_result      (happy path)
+    # branch -> log_failure -> log_result  (GX failed path)
     download_data >> load_raw >> run_gx_validation >> branch_on_gx
     branch_on_gx >> run_dbt >> log_result
     branch_on_gx >> log_failure >> log_result

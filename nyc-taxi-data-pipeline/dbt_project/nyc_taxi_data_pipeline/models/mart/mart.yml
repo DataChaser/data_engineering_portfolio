@@ -19,33 +19,133 @@ models:
         tests:
           - not_null
 
+      - name: total_fare_revenue
+        description: "Sum of fare_amount for all trips"
+
+      - name: total_tips
+        description: "Sum of tip_amount for all trips"
+
       - name: total_revenue
         description: "Sum of total_amount for all trips"
         tests:
           - not_null
 
+      - name: avg_fare
+        description: "Average fare amount"
+
+      - name: avg_tip
+        description: "Average tip amount"
+
+      - name: avg_distance_miles
+        description: "Average trip distance in miles"
+
+      - name: avg_duration_minutes
+        description: "Average trip duration in minutes"
+
   - name: mart_pickup_zones
-    description: "Trip volume by pickup zone and hour of day."
+    description: "Trip volume and average metrics by pickup zone and hour of day."
     columns:
+      - name: pickup_borough
+        description: "Borough where trip started"
+        tests:
+          - not_null
+
       - name: pickup_zone
+        description: "Zone where trip started"
         tests:
           - not_null
 
       - name: hour_of_day
+        description: "Hour of pickup (0-23)"
         tests:
           - not_null
           - accepted_values:
-              arguments:
-                values: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23]
+              values: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23]
+
+      - name: total_trips
+        description: "Number of trips for this zone and hour"
+        tests:
+          - not_null
+
+      - name: avg_fare
+        description: "Average fare amount"
+
+      - name: avg_distance_miles
+        description: "Average trip distance in miles"
+
+      - name: avg_duration_minutes
+        description: "Average trip duration in minutes"
 
   - name: mart_payment_summary
     description: "Revenue and trip summary by payment type."
     columns:
       - name: payment_type
+        description: "Numeric payment type code from raw data"
         tests:
           - not_null
           - unique
 
       - name: payment_label
+        description: "Human readable payment type label"
         tests:
           - not_null
+
+      - name: total_trips
+        description: "Number of trips for this payment type"
+        tests:
+          - not_null
+
+      - name: total_revenue
+        description: "Sum of total_amount for this payment type"
+
+      - name: avg_fare
+        description: "Average fare amount"
+
+      - name: avg_tip
+        description: "Average tip amount"
+
+      - name: avg_tip_rate_pct
+        description: "Average tip as a percentage of fare amount"
+
+      - name: avg_distance_miles
+        description: "Average trip distance in miles"
+
+      - name: avg_duration_minutes
+        description: "Average trip duration in minutes"
+
+  - name: mart_trip_duration
+    description: >
+      Daily average and median trip duration by pickup borough.
+      Only includes trips between 1 and 180 minutes to exclude
+      data errors and extreme outliers. Incremental - processes
+      new months only on each run.
+    columns:
+      - name: trip_date
+        description: "Date of the trip (pickup date)"
+        tests:
+          - not_null
+
+      - name: pickup_borough
+        description: "Borough where the trip started"
+        tests:
+          - not_null
+
+      - name: total_trips
+        description: "Number of trips for this borough and date"
+        tests:
+          - not_null
+
+      - name: avg_duration_minutes
+        description: "Average trip duration in minutes"
+
+      - name: median_duration_minutes
+        description: "Median trip duration - less affected by outliers than average"
+
+      - name: avg_distance_miles
+        description: "Average trip distance in miles"
+
+      - name: min_duration_minutes
+        description: "Shortest trip duration for this borough and date"
+
+      - name: max_duration_minutes
+        description: "Longest trip duration for this borough and date"

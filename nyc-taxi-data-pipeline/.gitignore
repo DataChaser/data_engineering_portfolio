@@ -14,8 +14,13 @@ venv/
 dbt_project/target/
 dbt_project/logs/
 dbt_project/.user.yml
+dbt_project/nyc_taxi_data_pipeline/profiles.yml
 
 # Airflow
 logs/
 airflow.db
 airflow.cfg
+
+# Astro
+.astro/
+airflow_settings.yaml
