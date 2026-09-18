@@ -1,0 +1,9 @@
+requests
+pandas
+pyarrow
+tenacity
+python-dotenv
+snowflake-connector-python
+google-cloud-storage
+great-expectations
+dbt-snowflake
