@@ -28,7 +28,7 @@ gcs_stage     = "FRED_DB.RAW.FRED_GCS_STAGE" #external stage pointing to thr GCS
 # Getting list of series loaded in snowflake to be compared against edits made to the indicator mapping file
 def get_snowflake_series(cursor):
     try:
-        cursor.execute("SELECT DISTINCT SERIES_ID FROM {raw_table}")
+        cursor.execute(f"SELECT DISTINCT SERIES_ID FROM {raw_table}")
         rows = cursor.fetchall()
         return {row[0] for row in rows }
     except Exception:
