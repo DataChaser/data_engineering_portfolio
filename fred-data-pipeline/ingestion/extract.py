@@ -1,63 +1,125 @@
+import os
+import sys
+import time
 import requests
-import numpy as np
 import pandas as pd
 from dotenv import load_dotenv
-import os
+
+#Ensuring module errors dont occur
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from utils import logger, api_retry_wrapper
+
+import logging
+logger = logging.getLogger(__name__)
 
 load_dotenv()
 
-FRED_API_KEY = os.getenv("FRED_API_KEY")
-FRED_BASE_URL = "https://api.stlouisfed.org/fred/series/observations"
+#FRED Data Configs
+fred_base_url = "https://api.stlouisfed.org/fred/series/observations"
+fred_api_key = os.getenv("FRED_API_KEY")
+default_start_date = "1975-01-01"
 
-INDICATORS = {
-    "GDP (Billions USD)": "GDP",
-    "CPI (Index)": "CPIAUCSL",
-    "Unemployment Rate": "UNRATE",
-    "Federal Funds Rate": "FEDFUNDS",
-    "Housing Starts (000s)": "HOUST",
-    "Retail Sales (Millions USD)": "RSXFS",
-}
+rate_limit = 0.5
 
+#Get list of indicators from indicator mapping file
+def get_indicator_list():
+    filepath  = "mapping"
+    filename = "indicators.csv"
+    indicator_file = os.path.join(filepath, filename)
+    if not os.path.exists(indicator_file):
+        raise FileNotFoundError(f"{filename} not found in {filepath}")
+    else:
+        logger.info(f"Loading file from {indicator_file}")
 
-def fetch_indicator(series_id: str, indicator_name: str):
+    indicators = pd.read_csv(indicator_file)
+    logger.info(f"loaded {len(indicators)} series from indicators.csv")
+
+    return indicators
+
+#Function to fetch data for an indicator
+def fetch_series(series_id, indicator_name, frequency):
     params = {
-        "series_id":         series_id,
-        "api_key":           FRED_API_KEY,
-        "file_type":         "json",
-        "observation_start": "2000-01-01",
-        "sort_order":        "asc",
+        "series_id": series_id,
+        "api_key": fred_api_key,
+        "file_type":"json",
+        "observation_start": default_start_date,
+        "sort_order": "asc",
     }
 
-    response = requests.get(FRED_BASE_URL, params=params)
+    response = api_retry_wrapper(requests.get, fred_base_url, params=params)
     response.raise_for_status()
 
-    data = response.json()
-    df = pd.DataFrame(data["observations"])
+    observations = response.json().get("observations", [])
+    if not observations:
+        logger.warning(f"{series_id}: FRED returned zero observations")
+        return pd.DataFrame()
+
+    df = pd.DataFrame(observations)
     df = df[["date", "value"]]
     df["value"] = pd.to_numeric(df["value"], errors="coerce")
-    df["value"] = df["value"].replace({np.nan: None})
-    df["date"] = pd.to_datetime(df["date"])
-    df["indicator_name"] = indicator_name
+    df["value"] = df["value"].where(df["value"].notna(), other=None)
+    df["date"] = pd.to_datetime(df["date"]).dt.date
     df["series_id"] = series_id
+    df["indicator_name"] = indicator_name
+    df["frequency"] = frequency
 
     return df
 
-
-def fetch_all_indicators():
+#Extract data for all indicators
+def extract_all():
+    indicators = get_indicator_list()
+    total_series = len(indicators)
     all_dfs = []
+    failed_series = []
 
-    for indicator_name, series_id in INDICATORS.items():
-        print(f"Fetching {indicator_name} ({series_id})...")
-        df = fetch_indicator(series_id, indicator_name)
-        all_dfs.append(df)
-        print(f"  Got {len(df)} rows")
+    for i, row in indicators.iterrows():
+        series_id = row["series_id"]
+        indicator_name = row["indicator_name"]
+        frequency = row["frequency"]
 
+        logger.info(
+            f"[{i+1}/{total_series}] fetching {series_id} "
+            f"({indicator_name}, {frequency})"
+        )
+
+        try:
+            df = fetch_series(series_id, indicator_name, frequency)
+            if not df.empty:
+                all_dfs.append(df)
+                logger.info(f"{series_id}: {len(df)} rows fetched")
+            else:
+                logger.warning(f"{series_id}: no data returned, skipping")
+        except Exception as e:
+            logger.error(f"{series_id}: failed after all retries -- {e}")
+            failed_series.append(series_id)
+        time.sleep(rate_limit)
+
+    if failed_series:
+        logger.error(
+            f"Extraction completed with {len(failed_series)} failed series: "
+            f"{failed_series}"
+        )
+    else:
+        logger.info("All series fetched successfully")
+
+    if not all_dfs:
+        logger.warning("No data fetched across any series")
+        return pd.DataFrame()
     combined = pd.concat(all_dfs, ignore_index=True)
-    print(f"Total rows fetched: {len(combined)}")
+
+    logger.info(
+        f"Extraction complete. Total rows fetched: {len(combined)} across {combined['series_id'].nunique()} series"
+    )
+    logger.info(
+        f"frequency breakdown: {combined['frequency'].value_counts().to_dict()}"
+    )
+
     return combined
 
 
 if __name__ == "__main__":
-    df = fetch_all_indicators()
-    print(df.head(10))
-    print(df.dtypes)
+    df = extract_all()
+    if not df.empty:
+        print(df.head(10))
+
+

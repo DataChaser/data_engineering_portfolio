@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 
 #Snowflake connection
 def get_snowflake_connection():
-    logging.info('Fetching Snowflake credentials')
+    logger.info('Fetching Snowflake credentials')
     return snowflake.connector.connect(
         account=os.getenv('SNOWFLAKE_ACCOUNT'),
         user=os.getenv('SNOWFLAKE_USER'),
@@ -32,8 +32,8 @@ def get_snowflake_connection():
 
 #GCS Client
 def get_gcs_client():
-    gcp_credentials_path=os.getenv('GCP_CREDENTIALS_PATH'),
-    logging.info('Initializing gcs client from {gcp_credentials_path}')
+    gcp_credentials_path=os.getenv('GCP_CREDENTIALS_PATH')
+    logger.info(f"Initializing gcs client from {gcp_credentials_path}")
     return storage.Client.from_service_account_json(gcp_credentials_path)
 
 #retry decorator for external api calls to handle errors, retries, backoff etc.

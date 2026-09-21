@@ -7,3 +7,4 @@ snowflake-connector-python
 google-cloud-storage
 great-expectations
 dbt-snowflake
+gcsfs

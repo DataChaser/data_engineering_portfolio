@@ -14,7 +14,7 @@ U6RATE,U-6 Broad Unemployment,Monthly
 PAYEMS,Total Nonfarm Payrolls,Monthly
 MANEMP,Manufacturing Employment,Monthly
 USCONS,Construction Employment,Monthly
-CES6500000001,Healthcare Employment,Monthly
+USEHS,Healthcare Employment,Monthly
 CIVPART,Labour Force Participation Rate,Monthly
 ICSA,Initial Jobless Claims,Weekly
 CCSA,Continuing Jobless Claims,Weekly
