@@ -4,9 +4,6 @@ import time
 import requests
 import pandas as pd
 from dotenv import load_dotenv
-
-#Ensuring module errors dont occur
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utils import logger, api_retry_wrapper
 
 import logging

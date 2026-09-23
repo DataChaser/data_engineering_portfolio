@@ -4,9 +4,6 @@ import io
 import pandas as pd
 from dotenv import load_dotenv
 import gcsfs
-
-#Ensuring module errors dont occur
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utils import logger, get_snowflake_connection, get_gcs_client
 from extract import extract_all, get_indicator_list
 
