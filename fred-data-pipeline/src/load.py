@@ -6,11 +6,12 @@ from dotenv import load_dotenv
 import gcsfs
 from utils import logger, get_snowflake_connection, get_gcs_client
 from extract import extract_all, get_indicator_list
+from google.oauth2 import service_account
 
 import logging
 logger = logging.getLogger(__name__)
 
-load_dotenv()
+load_dotenv(override=False)
 
 # GCS configuration
 gcs_bucket     = os.getenv("GCP_BUCKET") #the landing zone bucket, from .env
@@ -40,7 +41,7 @@ def delete_discontinued_series(cursor, snowflake_series: set, csv_series: set):
         return
     
     discontinued_series_list = ", ".join(f"'{series}'" for series in discontinued_series)
-    logger.info(f"Deleting {len(discontinued_series_list)} series: {discontinued_series}")
+    logger.info(f"Deleting discontinued series: {discontinued_series}")
 
     cursor.execute(f"DELETE FROM {raw_table} WHERE SERIES_ID IN ({discontinued_series_list})")
     logger.info("Discontinued series deleted")
@@ -48,7 +49,15 @@ def delete_discontinued_series(cursor, snowflake_series: set, csv_series: set):
 #Writing to Google Cloud Storage as a Parquet file
 def write_to_gcs(df: pd.DataFrame):
     credentials_path = os.getenv("GCP_CREDENTIALS_PATH")
-    fs = gcsfs.GCSFileSystem(token=credentials_path)
+    if not os.path.isabs(credentials_path):
+        credentials_path = os.path.join("/usr/local/airflow/project", credentials_path)
+    logger.info(f"GCS credentials path: {credentials_path}")
+
+    credentials = service_account.Credentials.from_service_account_file(
+        credentials_path,
+        scopes=["https://www.googleapis.com/auth/cloud-platform"]
+    )
+    fs = gcsfs.GCSFileSystem(token=credentials)
 
     tmp_path   = f"{gcs_bucket}/{gcs_tmp_path}"
     final_path = f"{gcs_bucket}/{gcs_final_path}"
