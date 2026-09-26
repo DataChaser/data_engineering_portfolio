@@ -4,14 +4,15 @@ import io
 import pandas as pd
 from dotenv import load_dotenv
 import gcsfs
-from utils import logger, get_snowflake_connection, get_gcs_client
+from utils import setup_logging, get_snowflake_connection, get_gcs_client
 from extract import extract_all, get_indicator_list
 from google.oauth2 import service_account
 
 import logging
+setup_logging()
 logger = logging.getLogger(__name__)
 
-load_dotenv(override=False)
+load_dotenv()
 
 # GCS configuration
 gcs_bucket     = os.getenv("GCP_BUCKET") #the landing zone bucket, from .env
@@ -48,9 +49,8 @@ def delete_discontinued_series(cursor, snowflake_series: set, csv_series: set):
 
 #Writing to Google Cloud Storage as a Parquet file
 def write_to_gcs(df: pd.DataFrame):
-    credentials_path = os.getenv("GCP_CREDENTIALS_PATH")
-    if not os.path.isabs(credentials_path):
-        credentials_path = os.path.join("/usr/local/airflow/project", credentials_path)
+    credentials_path = os.path.join(
+        os.getenv("project_root", os.getcwd()), os.getenv("GCP_CREDENTIALS_PATH"))
     logger.info(f"GCS credentials path: {credentials_path}")
 
     credentials = service_account.Credentials.from_service_account_file(

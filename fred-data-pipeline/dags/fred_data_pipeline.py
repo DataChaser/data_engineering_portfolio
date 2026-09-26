@@ -1,9 +1,6 @@
-# fred_data_pipeline.py
-# airflow dag that orchestrates the full fred economic indicators pipeline
-# runs on the 5th of every month at 7am, after most monthly FRED releases
+# orchestrating the full fred economic indicators pipeline which would run on the 5th of every month at 7am
 # task order: extract + load -> dbt staging -> dbt staging tests -> gx validation -> dbt mart -> dbt mart tests
-# each task only runs if the previous one succeeded
-# if gx validation fails, dbt mart never runs so that bad data never reaches the mart
+# each task only runs if the previous one succeeded. if gx validation fails, dbt mart never runs so that bad data never reaches the mart
 
 import sys
 import os

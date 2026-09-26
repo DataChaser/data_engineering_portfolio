@@ -1,9 +1,10 @@
 import os
 import great_expectations as gx
 from dotenv import load_dotenv
-from utils import logger
+from utils import setup_logging
 
 import logging
+setup_logging()
 logger = logging.getLogger(__name__)
 
 load_dotenv()

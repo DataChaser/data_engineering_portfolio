@@ -1,12 +1,12 @@
 import os
-import sys
 import time
 import requests
 import pandas as pd
 from dotenv import load_dotenv
-from utils import logger, api_retry_wrapper
+from utils import setup_logging, api_retry_wrapper
 
 import logging
+setup_logging()
 logger = logging.getLogger(__name__)
 
 load_dotenv()

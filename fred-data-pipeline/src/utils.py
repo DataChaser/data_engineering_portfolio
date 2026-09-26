@@ -9,13 +9,13 @@ from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_excep
 load_dotenv()
 
 #Logging
-LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()
-logging.basicConfig(
-    format = "%(asctime)s | %(levelname)s | %(name)s | %(message)s",
-    datefmt="%Y-%m-%d %H:%M:%S",
-    handlers=[logging.StreamHandler(), logging.FileHandler("pipeline.log")],
-    level=getattr(logging, LOG_LEVEL)
-)
+def setup_logging():
+    LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()
+    logging.basicConfig(
+        format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+        handlers=[logging.StreamHandler(), logging.FileHandler("pipeline.log")],
+        level=getattr(logging, LOG_LEVEL))
 logger = logging.getLogger(__name__)
 
 #Snowflake connection
