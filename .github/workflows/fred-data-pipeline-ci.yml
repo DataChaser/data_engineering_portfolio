@@ -7,7 +7,7 @@ on:
     branches: [main]
     paths:
       - 'fred-data-pipeline/**'
-      - '.github/workflows/ci.yml'
+      - '.github/workflows/fred-data-pipeline-ci.yml'
   pull_request:
     branches: [main]
     paths:
