@@ -1,10 +1,8 @@
-import sys
 import os
-import io
 import pandas as pd
 from dotenv import load_dotenv
 import gcsfs
-from utils import setup_logging, get_snowflake_connection, get_gcs_client
+from utils import setup_logging, get_snowflake_connection
 from extract import extract_all, get_indicator_list
 from google.oauth2 import service_account
 
@@ -31,7 +29,7 @@ def get_snowflake_series(cursor):
         rows = cursor.fetchall()
         return {row[0] for row in rows }
     except Exception:
-        logger.info(f"Raw table is empty or does not exist")
+        logger.info("Raw table is empty or does not exist")
         return set()
 
 # Delete data for indicators removed from indicators mapping file to remove stale data
@@ -114,7 +112,7 @@ def merge_into_raw(cursor):
             source.FREQUENCY
         )
     """)
-    logger.info(f"Merge complete")
+    logger.info("Merge complete")
 
 def run():
     logger.info("Starting the ingestion pipeline")
