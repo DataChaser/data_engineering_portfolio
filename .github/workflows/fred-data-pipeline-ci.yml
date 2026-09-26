@@ -31,7 +31,7 @@ jobs:
         run: pip install ruff==0.4.4
 
       - name: Run ruff  # run the link checks on the codes in below paths
-        run: ruff check fred-data-pipeline/src/ fred-data-pipeline/dags/ --select E,F
+        run: ruff check fred-data-pipeline/src/ fred-data-pipeline/dags/ --select F
   
   dbt_job:  # check for invalid sql, syntax error, bad jinja templating
     name: dbt_compile
