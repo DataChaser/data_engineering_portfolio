@@ -1,0 +1,51 @@
+version: 2
+
+models:
+  - name: mart_economic_indicators
+    description: >
+      Final analytics-ready table for economic indicator analysis.
+      One row per series per observation date. Contains current values, prior period values, and period-on-period change.
+      Rate series like unemployment, interest rates, yields use percentage point change. 
+      All other series use true percentage change.
+      Materialized as a table
+
+    columns:
+      - name: observation_date
+        description: "Observation date. Monthly for most series, quarterly for GDP, daily for financial series."
+        tests:
+          - not_null
+
+      - name: series_id
+        description: "FRED series identifier. Primary key alongside observation_date."
+        tests:
+          - not_null
+
+      - name: indicator_name
+        description: "Indicator names from indicators.csv"
+        tests:
+          - not_null
+
+      - name: frequency
+        description: "Series frequency: Daily, Weekly, Monthly, Quarterly, or Annual"
+
+      - name: value
+        description: >
+          Raw indicator value at native units.
+          Units vary by series -- percent for rate series, billions USD for GDP, index value for CPI, thousands of units for housing starts etc.
+
+      - name: prev_value
+        description: >
+          Value from the immediately preceding observation period.
+
+      - name: period_on_period_change
+        description: >
+          Period-on-period change. 
+          For rate series: percentage point change.
+          For all other series: true percentage change rounded to 2 decimal places.
+          Null for the first observation of each series or if previous value is zero.
+
+      - name: change_type
+        description: "Type of change depending on indicator: no_change, percentage_point_change (for rates, yields), growth rates"
+
+      - name: dbt_updated_at
+        description: "Timestamp of the last dbt build. Used for freshness tracking."

@@ -1,0 +1,37 @@
+version: 2
+
+models:
+  - name: stg_fred_observations
+    description: >
+      Cleaned and standardised FRED observations.
+      One row per indicator per date, same grain as the raw table.
+      Casts date to DATE, casts value to FLOAT, filters null dates.
+      Materialized as a view -- only consumed by downstream dbt models.
+
+    columns:
+      - name: observation_date
+        description: "Observation date cast to DATE type. Null dates filtered out."
+        tests:
+          - not_null
+
+      - name: series_id
+        description: "FRED series identifier"
+        tests:
+          - not_null
+
+      - name: frequency
+        description: "Series frequency"
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values:
+                  - "Daily"
+                  - "Weekly"
+                  - "Monthly"
+                  - "Quarterly"
+                  - "Annual"  
+
+      - name: value
+        description: >
+          Indicator value cast to FLOAT. Can be null for periods where FRED has no data.

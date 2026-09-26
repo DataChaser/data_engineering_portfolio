@@ -1,0 +1,28 @@
+version: 2
+
+sources:
+  - name: raw
+    database: FRED_DB
+    schema: RAW
+    config:
+      freshness:
+        warn_after: {count: 45, period: day}
+        error_after: {count: 60, period: day}
+      loaded_at_field: LOADED_AT
+
+    tables:
+      - name: fred_observations
+        description: "Raw FRED observations loaded by load.py. One row per indicator per date."
+        columns:
+          - name: DATE
+            description: "Observation date"
+          - name: VALUE
+            description: "Indicator value."
+          - name: INDICATOR_NAME
+            description: "Indicator name"
+          - name: SERIES_ID
+            description: "FRED series identifier"
+          - name: FREQUENCY
+            description: "Series frequency: Daily, Weekly, Monthly, Quarterly, or Annual"
+          - name: LOADED_AT
+            description: "Timestamp when this row was loaded into Snowflake by load.py"
