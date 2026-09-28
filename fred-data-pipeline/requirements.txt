@@ -1,0 +1,13 @@
+# use this for local development only
+requests==2.32.4
+pandas==2.2.3
+pyarrow==19.0.1
+tenacity==9.1.4
+python-dotenv==1.2.1
+snowflake-connector-python==4.4.0
+google-cloud-storage==3.14.1
+gcsfs==2026.8.1
+google-auth==2.53.0
+great-expectations==1.15.2
+dbt-snowflake==1.11.3
+snowflake-sqlalchemy==1.11.1

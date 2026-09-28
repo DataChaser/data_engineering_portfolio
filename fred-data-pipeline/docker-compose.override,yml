@@ -1,0 +1,59 @@
+version: '3'
+services:
+  scheduler:
+    volumes:
+      # mounting the entire project root into the container to give Airflow access to src/, dbt_project/, mapping/ folders etc.
+      # without this, the container only sees the dags/ folder
+      - .:/usr/local/airflow/project
+    environment:
+      - SNOWFLAKE_ACCOUNT=${SNOWFLAKE_ACCOUNT}
+      - SNOWFLAKE_USER=${SNOWFLAKE_USER}
+      - SNOWFLAKE_PASSWORD=${SNOWFLAKE_PASSWORD}
+      - SNOWFLAKE_ROLE=${SNOWFLAKE_ROLE}
+      - SNOWFLAKE_WAREHOUSE=${SNOWFLAKE_WAREHOUSE}
+      - SNOWFLAKE_SCHEMA=${SNOWFLAKE_SCHEMA}
+      - GCP_CREDENTIALS_PATH=/usr/local/airflow/project/credentials/fred-gcp-credentials.json
+      - GCS_BUCKET_NAME=${GCS_BUCKET_NAME}
+      - FRED_API_KEY=${FRED_API_KEY}
+
+  webserver:
+    volumes:
+      - .:/usr/local/airflow/project
+    environment:
+      - SNOWFLAKE_ACCOUNT=${SNOWFLAKE_ACCOUNT}
+      - SNOWFLAKE_USER=${SNOWFLAKE_USER}
+      - SNOWFLAKE_PASSWORD=${SNOWFLAKE_PASSWORD}
+      - SNOWFLAKE_ROLE=${SNOWFLAKE_ROLE}
+      - SNOWFLAKE_WAREHOUSE=${SNOWFLAKE_WAREHOUSE}
+      - SNOWFLAKE_SCHEMA=${SNOWFLAKE_SCHEMA}
+      - GCP_CREDENTIALS_PATH=/usr/local/airflow/project/credentials/fred-gcp-credentials.json
+      - GCS_BUCKET_NAME=${GCS_BUCKET_NAME}
+      - FRED_API_KEY=${FRED_API_KEY}
+
+  triggerer:
+    volumes:
+      - .:/usr/local/airflow/project
+    environment:
+      - SNOWFLAKE_ACCOUNT=${SNOWFLAKE_ACCOUNT}
+      - SNOWFLAKE_USER=${SNOWFLAKE_USER}
+      - SNOWFLAKE_PASSWORD=${SNOWFLAKE_PASSWORD}
+      - SNOWFLAKE_ROLE=${SNOWFLAKE_ROLE}
+      - SNOWFLAKE_WAREHOUSE=${SNOWFLAKE_WAREHOUSE}
+      - SNOWFLAKE_SCHEMA=${SNOWFLAKE_SCHEMA}
+      - GCP_CREDENTIALS_PATH=/usr/local/airflow/project/credentials/fred-gcp-credentials.json
+      - GCS_BUCKET_NAME=${GCS_BUCKET_NAME}
+      - FRED_API_KEY=${FRED_API_KEY}
+
+  worker:
+    volumes:
+      - .:/usr/local/airflow/project
+    environment:
+      - SNOWFLAKE_ACCOUNT=${SNOWFLAKE_ACCOUNT}
+      - SNOWFLAKE_USER=${SNOWFLAKE_USER}
+      - SNOWFLAKE_PASSWORD=${SNOWFLAKE_PASSWORD}
+      - SNOWFLAKE_ROLE=${SNOWFLAKE_ROLE}
+      - SNOWFLAKE_WAREHOUSE=${SNOWFLAKE_WAREHOUSE}
+      - SNOWFLAKE_SCHEMA=${SNOWFLAKE_SCHEMA}
+      - GCP_CREDENTIALS_PATH=/usr/local/airflow/project/credentials/fred-gcp-credentials.json
+      - GCS_BUCKET_NAME=${GCS_BUCKET_NAME}
+      - FRED_API_KEY=${FRED_API_KEY}

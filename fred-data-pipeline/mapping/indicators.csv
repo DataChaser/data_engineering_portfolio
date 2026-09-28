@@ -1,0 +1,66 @@
+series_id,indicator_name,frequency
+GDP,Nominal GDP,Quarterly
+GDPC1,Real GDP,Quarterly
+GDPPOT,Potential GDP,Quarterly
+A191RL1Q225SBEA,Real GDP Growth Rate QoQ,Quarterly
+A939RX0Q048SBEA,Real GDP Per Capita,Quarterly
+INDPRO,Industrial Production Index,Monthly
+TCU,Capacity Utilisation,Monthly
+BOPTEXP,Exports of Goods and Services,Quarterly
+BOPTIMP,Imports of Goods and Services,Quarterly
+GFDEGDQ188S,Federal Debt as Pct of GDP,Quarterly
+UNRATE,Unemployment Rate,Monthly
+U6RATE,U-6 Broad Unemployment,Monthly
+PAYEMS,Total Nonfarm Payrolls,Monthly
+MANEMP,Manufacturing Employment,Monthly
+USCONS,Construction Employment,Monthly
+USEHS,Healthcare Employment,Monthly
+CIVPART,Labour Force Participation Rate,Monthly
+ICSA,Initial Jobless Claims,Weekly
+CCSA,Continuing Jobless Claims,Weekly
+CES0500000003,Average Hourly Earnings,Monthly
+USREC,NBER Recession Indicator,Monthly
+CPIAUCSL,CPI All Items,Monthly
+CPILFESL,Core CPI ex Food and Energy,Monthly
+CPIENGSL,CPI Energy,Monthly
+CPIUFDSL,CPI Food,Monthly
+PCEPI,PCE Price Index,Monthly
+PCEPILFE,Core PCE,Monthly
+PPIFIS,PPI Final Demand,Monthly
+T10YIE,10-Year Breakeven Inflation Rate,Daily
+T5YIE,5-Year Breakeven Inflation Rate,Daily
+FEDFUNDS,Federal Funds Rate,Monthly
+DFF,Federal Funds Rate Daily,Daily
+DGS3MO,3-Month Treasury Yield,Daily
+DGS1,1-Year Treasury Yield,Daily
+DGS2,2-Year Treasury Yield,Daily
+DGS10,10-Year Treasury Yield,Daily
+DGS30,30-Year Treasury Yield,Daily
+T10Y2Y,Yield Curve Spread 10Y-2Y,Daily
+DFEDTARL,Fed Funds Target Rate Lower Bound,Daily
+DFEDTARU,Fed Funds Target Rate Upper Bound,Daily
+IORB,Interest Rate on Reserve Balances,Daily
+WALCL,Fed Total Balance Sheet,Weekly
+M2SL,M2 Money Supply Monthly,Monthly
+WM2NS,M2 Money Supply Weekly,Weekly
+TOTBKCR,Total Bank Credit,Weekly
+WRMFNS,Retail Money Market Funds,Weekly
+HOUST,Housing Starts,Monthly
+PERMIT,Building Permits,Monthly
+MSPUS,Median Sales Price Houses Sold,Quarterly
+USSTHPI,All-Transactions House Price Index,Quarterly
+NHSUSSPT,New Houses Sold,Monthly
+RSXFS,Retail Sales ex Food Services,Monthly
+PCE,Personal Consumption Expenditures,Monthly
+PSAVERT,Personal Saving Rate,Monthly
+PRFI,Private Residential Fixed Investment,Quarterly
+PNFI,Private Nonresidential Fixed Investment,Quarterly
+POPTHM,US Population,Monthly
+GFDEBTN,Federal Debt Total,Quarterly
+FYFSGDA188S,Federal Surplus Deficit as Pct of GDP,Annual
+FYFSDFYGDP,Federal Net Outlays as Pct of GDP,Annual
+DPCERO1Q156NBEA,Personal Consumption Growth Rate,Quarterly
+MEHOINUSA646N,Median Household Income Nominal,Annual
+MEHOINUSA672N,Real Median Household Income,Annual
+PPAAUS00000A156NCEN,Poverty Rate,Annual
+GINIALLRH,Gini Coefficient,Annual
