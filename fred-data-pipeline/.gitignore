@@ -7,3 +7,5 @@ dbt_project/dbt_packages/
 dbt_project/logs/
 credentials/
 airflow_settings.yaml
+pipeline.log
+.astro/
