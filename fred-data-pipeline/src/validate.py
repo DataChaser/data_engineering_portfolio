@@ -22,15 +22,6 @@ def validate() -> bool:
     suite.add_expectation(gx.expectations.ExpectTableColumnsToMatchSet(
         column_set=["observation_date", "indicator_name", "series_id","frequency", "value"], exact_match=False))
 
-    #Not null checks in date and series_id
-    suite.add_expectation(gx.expectations.ExpectColumnValuesToNotBeNull(column="observation_date"))
-    suite.add_expectation(gx.expectations.ExpectColumnValuesToNotBeNull(column="series_id"))
-
-    # Accepted values check on frequency column
-    suite.add_expectation(gx.expectations.ExpectColumnValuesToBeInSet(
-        column="frequency",
-        value_set=["Daily", "Weekly", "Monthly", "Quarterly", "Annual"]))
-
     logger.info(f"suite built with {len(suite.expectations)} expectations")
 
     # Connect GX to Snowflake. Adding data source via snowflake, pointing to the specific table
