@@ -1,138 +1,151 @@
 # Multi-Source Economic Data Pipeline
 
-A data pipeline that ingests macroeconomic data from two public APIs, loads it into Snowflake, and transforms it through a layered dbt project with incremental loading and data quality tests.
+A batch data pipeline that ingests 18 economic and human development indicators from three public APIs (World Bank, IMF, and UNDP), loads them into Snowflake, transforms them with dbt, validates data quality with Great Expectations, and is fully orchestrated by Apache Airflow.
 
-## Data Flow
+---
 
-FRED API + World Bank API (two separate sources) -> Python Ingestion -> Snowflake RAW -> dbt Staging -> dbt Intermediate -> dbt Mart
+## Architecture
+
+![Pipeline Architecture](docs/data_pipeline_architecture.png)
+
+---
 
 ## Tech Stack
 
-- **Python** - API ingestion scripts with incremental loading logic
-- **Snowflake** - cloud data warehouse, hosts raw and transformed layers
-- **dbt** - transformation layer with staging, intermediate, and mart models
-- **FRED API** - US macroeconomic indicators (Federal Reserve)
-- **World Bank API** - global economic indicators across 7 countries
-
-## Data Sources
-
-### FRED (Federal Reserve Economic Data)
-- `GNPCA` - Real GNP (annual)
-- `UNRATE` - US Unemployment Rate (monthly)
-- `CPIAUCSL` - Consumer Price Index (monthly)
-
-### World Bank
-- `NY.GDP.MKTP.CD` - GDP in current USD
-- `FP.CPI.TOTL.ZG` - Annual inflation rate
-- `SL.UEM.TOTL.ZS` - Unemployment rate
-
-Countries: USA, GBR, DEU, JPN, IND, BRA, CHN (US, UK, Germany, Japan, India, Brazil, China)
-
-## Project Structure
-```
-multi-source-econ-pipeline/
-├── econ_pipeline/                  # dbt project
-│   ├── models/
-│   │   ├── staging/                # raw data
-│   │   ├── intermediate/           # joins and enriches across sources
-│   │   └── mart/                   # final analytical output
-│   └── dbt_project.yml
-├── ingestion/                      # Python ingestion scripts
-│   ├── fred_ingest.py
-│   ├── worldbank_ingest.py
-│   └── utils.py
-├── .env
-├── requirements.txt
-└── README.md
-
-```
-
-## dbt Layer Design
-
-| Layer | Materialization | Purpose |
+| Layer | Tool | Purpose |
 |---|---|---|
-| Staging | View | Clean and type-cast raw source data |
-| Intermediate | View | Join and pivot across sources |
-| Mart | Table | Final analytical output, query-ready |
+| Extraction | Python, World Bank API, IMF DataMapper API, UNDP HDR API | Fetch 18 indicators across 30 countries from 3 sources |
+| Storage | Google Cloud Storage | Landing zone for raw JSON files |
+| Warehouse | Snowflake | Raw and transformed data |
+| Transformation | dbt | Staging views + intermediate union + mart model |
+| Data Quality | Great Expectations | Validation checks on staging |
+| Orchestration | Apache Airflow (Astro CLI) | Scheduled DAG, runs 1st April and 1st October at 7am |
+| CI | GitHub Actions | Ruff lint + dbt parse on every PR |
 
-## Key Engineering Concepts
+---
 
-**Incremental Loading** - ingestion scripts check the latest date/year already loaded in Snowflake and only pulls new data from the API. Running the scripts multiple times never produces duplicates.
+## Pipeline
 
-**dbt Layering** - separation between raw, staging, intermediate, and mart layers. Each layer has a single responsibility. Transformations are never done in ingestion scripts.
+The DAG runs automatically on the 1st of April and 1st October at 7am, aligned with the IMF World Economic Outlook release schedule.
 
-**Data Quality Tests** - 14 dbt tests across staging and mart layers covering null checks and accepted value validation. Tests run after every `dbt run` to catch data issues early.
+### 1. Extract and Load
 
-## Setup
+Three extract scripts run in parallel, one per source. Each fetches its indicators and writes raw JSON files to GCS. Once all three extracts complete, a single load script truncates the RAW tables and runs COPY INTO from GCS into Snowflake, one table per source.
+
+### 2. dbt Staging
+
+Builds three views on top of the RAW tables, one per source. Each staging model parses the VARIANT column into typed columns: country code, observation year, indicator code, and indicator value. dbt tests run after staging to validate the output.
+
+### 3. Great Expectations Validation
+
+Runs 2 checks against each of the three staging tables before the mart is built:
+
+- Row count > 0
+- Required columns present
+
+If any check fails the pipeline branches to a `validation_failed` task and the mart is never built. Bad data never reaches the analytical layer.
+
+### 4. dbt Mart
+
+An intermediate model unions all three staging models into one long-format dataset. The mart model joins to the countries and indicators seed files to add country names, blocs, and indicator names. One row per country per indicator per year.
+
+---
+
+## Data
+
+- **18 indicators** across macro fundamentals (World Bank), fiscal and monetary conditions (IMF), and human development (UNDP)
+- **30 countries** spanning G7, BRICS, ASEAN, Mercosur, USMCA, and CPTPP
+- Indicators and countries are managed via `mapping/indicators.csv` and `mapping/countries.csv`. Adding a new indicator or country requires one CSV row, no code changes needed.
+- IMF data includes both historical actuals and forward projections. Both are retained — the source data distinguishes them and downstream users can filter as needed.
+
+---
+
+## Running Locally
 
 ### Prerequisites
-- Python 3.9+
-- Snowflake account
-- FRED API key (free at fred.stlouisfed.org)
 
-### Installation
+Before running this project you will need:
+
+- Python 3.12+
+- Docker Desktop
+- [Astro CLI](https://docs.astronomer.io/astro/cli/install-cli) for running Airflow locally
+- A [Snowflake](https://www.snowflake.com) account with a database, warehouse, and role set up
+- A [GCP](https://cloud.google.com) service account with GCS read/write access, and a GCS bucket created
+- A [UNDP API key](https://hdrdata.org)
+
+### Setup
+
+Clone the repo:
+
 ```bash
-git clone https://github.com/yourusername/multi-source-econ-pipeline.git
-cd multi-source-econ-pipeline
-python -m venv your_virtual_environment_name
-source venv/bin/activate  # If using Windows: venv\Scripts\activate
-pip install -r requirements.txt
+git clone https://github.com/DataChaser/data_engineering_portfolio
+cd multi-source-econ-data-pipeline
 ```
 
-### Configuration
+Copy the sample environment file and fill in your credentials:
 
-Create a `.env` file in your project directory. Copy the below contents to `.env` file and fill in your credentials:
-```
-FRED_API_KEY=your_key_here
-SNOWFLAKE_ACCOUNT=your_account_identifier
-SNOWFLAKE_USER=your_username
-SNOWFLAKE_PASSWORD=your_password
-```
-
-Configure your dbt profile at `~/.dbt/profiles.yml` - see `profiles.yml.example` for the expected structure.
-
-### Snowflake Setup
-
-Run this in a Snowflake worksheet before first use:
-```sql
-CREATE WAREHOUSE IF NOT EXISTS ECON_WH
-  WAREHOUSE_SIZE = 'X-SMALL'
-  AUTO_SUSPEND = 60
-  AUTO_RESUME = TRUE;
-
-CREATE DATABASE IF NOT EXISTS ECON_DB;
-CREATE SCHEMA IF NOT EXISTS ECON_DB.RAW;
-CREATE SCHEMA IF NOT EXISTS ECON_DB.DBT_DEV;
-```
-
-### Running the Pipeline
 ```bash
-# Step 1 - ingest raw data
-cd ingestion
-python fred_ingest.py
-python worldbank_ingest.py
-
-# Step 2 - run dbt transformations
-cd ../econ_pipeline
-dbt run
-
-# Step 3 - run data quality tests
-dbt test
+# on Mac/Linux
+cp .env.example .env
+# on Windows
+copy .env.example .env
 ```
 
-## Output
+Open `.env` and fill in:
 
-The final mart table `MART_GLOBAL_ECONOMIC_SNAPSHOT` contains one row per country per year from 2000 onwards with the following metrics:
+```
+SNOWFLAKE_ACCOUNT=
+SNOWFLAKE_USER=
+SNOWFLAKE_PASSWORD=
+SNOWFLAKE_ROLE=
+SNOWFLAKE_WAREHOUSE=
+SNOWFLAKE_DATABASE=
+SNOWFLAKE_SCHEMA=
+GCS_BUCKET=
+GCP_CREDENTIALS_PATH=
+UNDP_API_KEY=
+```
 
-- GDP in billions USD
-- Inflation rate (%)
-- Unemployment rate (%)
-- US benchmark indicators from FRED for the same year
-- Unemployment delta vs US
+### Run the pipeline in Airflow
 
-## Things to add next
+```bash
+astro dev start
+```
 
-- Orchestration with Apache Airflow to schedule daily runs
-- dbt snapshots to track how indicators change over time
-- Streamlit dashboard built on top of the mart table
-- Extended country coverage and additional indicators
+Open `http://localhost:8080`, trigger the `econ_data_pipeline` DAG manually. This will run the full pipeline from extracting the data to the building and testing of the mart model. If any part of the pipeline fails or the data validation checks fail, then the pipeline stops.
+
+### To run the extract and load scripts directly
+
+```bash
+python src/worldbank_extract.py
+python src/imf_extract.py
+python src/undp_extract.py
+python src/load.py
+```
+
+### To run the validation directly
+
+```bash
+python src/validate.py
+```
+
+---
+
+## CI
+
+Every pull request to `main` runs two checks automatically:
+
+- **Ruff lint**: Checks `src/` and `dags/` for syntax errors, unused imports, undefined variables, and f-string errors
+- **dbt parse**: Validates all SQL models and Jinja templating without connecting to Snowflake
+
+---
+
+## Key Design Decisions
+
+- **GCS as a landing zone**: Raw JSON files land in GCS before Snowflake. If anything fails downstream, the source files are always there to replay from without re-hitting the APIs.
+
+- **Long format mart**: The mart stores one row per country per indicator per year rather than a wide pivoted table. Adding or removing an indicator requires only a CSV change — no SQL changes needed.
+
+- **GX Validation after staging**: Great Expectations runs between staging and mart. If validation fails, the pipeline stops and the mart is never built. Bad data is caught before it reaches the analytical layer. An additional layer of dbt tests is implemented at the staging and mart layer.
+
+- **Indicators and countries managed via CSV**: Any person or team in charge of data coverage can add or remove an indicator from `mapping/indicators.csv` or a country from `mapping/countries.csv`. No code changes needed.
