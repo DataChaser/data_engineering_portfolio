@@ -1,0 +1,65 @@
+version: '3'
+services:
+  scheduler:
+    volumes:
+      - .:/usr/local/airflow/project
+    environment:
+      - SNOWFLAKE_ACCOUNT=${SNOWFLAKE_ACCOUNT}
+      - SNOWFLAKE_USER=${SNOWFLAKE_USER}
+      - SNOWFLAKE_PASSWORD=${SNOWFLAKE_PASSWORD}
+      - SNOWFLAKE_ROLE=${SNOWFLAKE_ROLE}
+      - SNOWFLAKE_WAREHOUSE=${SNOWFLAKE_WAREHOUSE}
+      - SNOWFLAKE_SCHEMA=${SNOWFLAKE_SCHEMA}
+      - SNOWFLAKE_DATABASE=${SNOWFLAKE_DATABASE}
+      - GCP_CREDENTIALS_PATH=credentials/econ-data-pipeline-gcp-credentials.json
+      - PROJECT_ROOT=/usr/local/airflow/project
+      - GCS_BUCKET=${GCS_BUCKET}
+      - UNDP_API_KEY=${UNDP_API_KEY}
+
+  webserver:
+    volumes:
+      - .:/usr/local/airflow/project
+    environment:
+      - SNOWFLAKE_ACCOUNT=${SNOWFLAKE_ACCOUNT}
+      - SNOWFLAKE_USER=${SNOWFLAKE_USER}
+      - SNOWFLAKE_PASSWORD=${SNOWFLAKE_PASSWORD}
+      - SNOWFLAKE_ROLE=${SNOWFLAKE_ROLE}
+      - SNOWFLAKE_WAREHOUSE=${SNOWFLAKE_WAREHOUSE}
+      - SNOWFLAKE_SCHEMA=${SNOWFLAKE_SCHEMA}
+      - SNOWFLAKE_DATABASE=${SNOWFLAKE_DATABASE}
+      - GCP_CREDENTIALS_PATH=credentials/econ-data-pipeline-gcp-credentials.json
+      - PROJECT_ROOT=/usr/local/airflow/project
+      - GCS_BUCKET=${GCS_BUCKET}
+      - UNDP_API_KEY=${UNDP_API_KEY}
+
+  triggerer:
+    volumes:
+      - .:/usr/local/airflow/project
+    environment:
+      - SNOWFLAKE_ACCOUNT=${SNOWFLAKE_ACCOUNT}
+      - SNOWFLAKE_USER=${SNOWFLAKE_USER}
+      - SNOWFLAKE_PASSWORD=${SNOWFLAKE_PASSWORD}
+      - SNOWFLAKE_ROLE=${SNOWFLAKE_ROLE}
+      - SNOWFLAKE_WAREHOUSE=${SNOWFLAKE_WAREHOUSE}
+      - SNOWFLAKE_SCHEMA=${SNOWFLAKE_SCHEMA}
+      - SNOWFLAKE_DATABASE=${SNOWFLAKE_DATABASE}
+      - GCP_CREDENTIALS_PATH=credentials/econ-data-pipeline-gcp-credentials.json
+      - PROJECT_ROOT=/usr/local/airflow/project
+      - GCS_BUCKET=${GCS_BUCKET}
+      - UNDP_API_KEY=${UNDP_API_KEY}
+
+  worker:
+    volumes:
+      - .:/usr/local/airflow/project
+    environment:
+      - SNOWFLAKE_ACCOUNT=${SNOWFLAKE_ACCOUNT}
+      - SNOWFLAKE_USER=${SNOWFLAKE_USER}
+      - SNOWFLAKE_PASSWORD=${SNOWFLAKE_PASSWORD}
+      - SNOWFLAKE_ROLE=${SNOWFLAKE_ROLE}
+      - SNOWFLAKE_WAREHOUSE=${SNOWFLAKE_WAREHOUSE}
+      - SNOWFLAKE_SCHEMA=${SNOWFLAKE_SCHEMA}
+      - SNOWFLAKE_DATABASE=${SNOWFLAKE_DATABASE}
+      - GCP_CREDENTIALS_PATH=credentials/econ-data-pipeline-gcp-credentials.json
+      - PROJECT_ROOT=/usr/local/airflow/project
+      - GCS_BUCKET=${GCS_BUCKET}
+      - UNDP_API_KEY=${UNDP_API_KEY}
