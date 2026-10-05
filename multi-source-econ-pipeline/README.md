@@ -30,7 +30,7 @@ Countries: USA, GBR, DEU, JPN, IND, BRA, CHN (US, UK, Germany, Japan, India, Bra
 
 ## Project Structure
 ```
-econ-pipeline/
+multi-source-econ-pipeline/
 ├── econ_pipeline/                  # dbt project
 │   ├── models/
 │   │   ├── staging/                # raw data
@@ -72,8 +72,8 @@ econ-pipeline/
 
 ### Installation
 ```bash
-git clone https://github.com/DataChaser/econ-pipeline.git
-cd econ-pipeline
+git clone https://github.com/yourusername/multi-source-econ-pipeline.git
+cd multi-source-econ-pipeline
 python -m venv your_virtual_environment_name
 source venv/bin/activate  # If using Windows: venv\Scripts\activate
 pip install -r requirements.txt
