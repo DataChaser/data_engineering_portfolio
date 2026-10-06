@@ -64,7 +64,7 @@ jobs:
 
       - name: Run dbt parse   
         run: |
-          cd global-economic-pipeline/dbt_project/econ_data_pipeline
+          cd global-economic-pipeline/dbt_project/global_economic_pipeline
           dbt parse --profiles-dir ~/.dbt --project-dir .
 
 

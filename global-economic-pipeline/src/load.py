@@ -1,4 +1,3 @@
-import os
 from dotenv import load_dotenv
 from utils import setup_logging, get_snowflake_connection
 
