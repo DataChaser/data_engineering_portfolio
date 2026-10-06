@@ -1,0 +1,31 @@
+country_code,country_name,bloc
+USA,United States,G7
+GBR,United Kingdom,G7
+DEU,Germany,G7
+FRA,France,G7
+JPN,Japan,G7
+CAN,Canada,G7
+ITA,Italy,G7
+BRA,Brazil,BRICS
+RUS,Russia,BRICS
+IND,India,BRICS
+CHN,China,BRICS
+ZAF,South Africa,BRICS
+IDN,Indonesia,ASEAN
+THA,Thailand,ASEAN
+VNM,Vietnam,ASEAN
+PHL,Philippines,ASEAN
+MYS,Malaysia,ASEAN
+SGP,Singapore,ASEAN
+MMR,Myanmar,ASEAN
+KHM,Cambodia,ASEAN
+LAO,Laos,ASEAN
+BRN,Brunei,ASEAN
+ARG,Argentina,Mercosur
+URY,Uruguay,Mercosur
+PRY,Paraguay,Mercosur
+MEX,Mexico,USMCA
+AUS,Australia,CPTPP
+PER,Peru,CPTPP
+CHL,Chile,CPTPP
+NZL,New Zealand,CPTPP

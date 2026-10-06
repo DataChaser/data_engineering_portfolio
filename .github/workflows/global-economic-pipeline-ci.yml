@@ -1,13 +1,13 @@
 # CI pipeline for the Multi Source Economic Indicators Pipeline
-# Will run automatically on every push and pull request to main but only when files inside multi-source-econ-data-pipeline/ are changed
+# Will run automatically on every push and pull request to main but only when files inside global-economic-pipeline/ are changed
 
-name: ECON_DATA_PIPELINE_CI
+name: GLOBAL-ECONOMIC-PIPELINE-CI
 on:
   pull_request:
     branches: [main]
     paths:
-      - 'multi-source-econ-data-pipeline/**'
-      - '.github/workflows/multi-source-econ-data-pipeline.yml'
+      - 'global-economic-pipeline/**'
+      - '.github/workflows/global-economic-pipeline.yml'
 
 jobs:
   python_job:  # checking for syntax errors, unused imports, undefined variables, style issues
@@ -26,7 +26,7 @@ jobs:
         run: pip install ruff==0.4.4
 
       - name: Run ruff  # run the link checks on the codes in below paths
-        run: ruff check multi-source-econ-data-pipeline/src/ multi-source-econ-data-pipeline/dags/ --select F
+        run: ruff check global-economic-pipeline/src/ global-economic-pipeline/dags/ --select F
   
   dbt_job:  # check for invalid sql, syntax error, bad jinja templating
     name: dbt parse
@@ -64,7 +64,7 @@ jobs:
 
       - name: Run dbt parse   
         run: |
-          cd multi-source-econ-data-pipeline/dbt_project/econ_data_pipeline
+          cd global-economic-pipeline/dbt_project/econ_data_pipeline
           dbt parse --profiles-dir ~/.dbt --project-dir .
 
 
