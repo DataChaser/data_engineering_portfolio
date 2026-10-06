@@ -47,7 +47,7 @@ jobs:
         run: |
           mkdir -p ~/.dbt
           cat > ~/.dbt/profiles.yml << 'EOF'
-          econ_data_pipeline:
+          global_economic_pipeline:
             target: dev
             outputs:
               dev:
