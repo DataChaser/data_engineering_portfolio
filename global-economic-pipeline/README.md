@@ -1,4 +1,4 @@
-# Multi-Source Economic Data Pipeline
+# Global Economic Pipeline
 
 A batch data pipeline that ingests 18 economic and human development indicators from three public APIs (World Bank, IMF, and UNDP), loads them into Snowflake, transforms them with dbt, validates data quality with Great Expectations, and is fully orchestrated by Apache Airflow.
 
@@ -79,7 +79,7 @@ Clone the repo:
 
 ```bash
 git clone https://github.com/DataChaser/data_engineering_portfolio
-cd multi-source-econ-data-pipeline
+cd global-economic-pipeline
 ```
 
 Copy the sample environment file and fill in your credentials:
@@ -112,7 +112,7 @@ UNDP_API_KEY=
 astro dev start
 ```
 
-Open `http://localhost:8080`, trigger the `econ_data_pipeline` DAG manually. This will run the full pipeline from extracting the data to the building and testing of the mart model. If any part of the pipeline fails or the data validation checks fail, then the pipeline stops.
+Open `http://localhost:8080`, trigger the `global_economic_pipeline` DAG manually. This will run the full pipeline from extracting the data to the building and testing of the mart model. If any part of the pipeline fails or the data validation checks fail, then the pipeline stops.
 
 ### To run the extract and load scripts directly
 

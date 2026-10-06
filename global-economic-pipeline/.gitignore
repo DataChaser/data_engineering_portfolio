@@ -6,7 +6,7 @@ credentials/
 target/
 dbt_packages/
 logs/
-dbt_project/econ_data_pipeline/profiles.yml
+dbt_project/global_economic_pipeline/profiles.yml
 
 __pycache__/
 *.pyc

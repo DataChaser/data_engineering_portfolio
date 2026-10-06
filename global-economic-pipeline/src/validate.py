@@ -13,18 +13,15 @@ load_dotenv()
 staging_tables = [
     {
         "suite": "worldbank_staging_suite",
-        "table": "stg_worldbank",
-        "source": "worldbank"
+        "table": "stg_worldbank"
     },
     {
         "suite": "imf_staging_suite",
-        "table": "stg_imf",
-        "source": "imf"
+        "table": "stg_imf"
     },
     {
         "suite": "undp_staging_suite",
-        "table": "stg_undp",
-        "source": "undp"
+        "table": "stg_undp"
     }
 ]
 
@@ -32,7 +29,6 @@ staging_tables = [
 def validate_table(context, data_source, table_config):
     suite = table_config["suite"]
     table = table_config["table"]
-    source = table_config["source"]
 
     logger.info(f"Building suite for {table}")
 

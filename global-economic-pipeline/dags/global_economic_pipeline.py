@@ -15,7 +15,7 @@ sys.path.insert(0, project_root)
 sys.path.insert(0, os.path.join(project_root, "src"))
 
 # dbt project path and writable output paths
-dbt_project_dir = os.path.join(project_root, "dbt_project/econ_data_pipeline")
+dbt_project_dir = os.path.join(project_root, "dbt_project/global_economic_pipeline")
 dbt_log_path    = "/tmp/dbt_logs"
 dbt_target_path = "/tmp/dbt_target"
 

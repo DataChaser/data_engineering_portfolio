@@ -11,7 +11,7 @@ services:
       - SNOWFLAKE_WAREHOUSE=${SNOWFLAKE_WAREHOUSE}
       - SNOWFLAKE_SCHEMA=${SNOWFLAKE_SCHEMA}
       - SNOWFLAKE_DATABASE=${SNOWFLAKE_DATABASE}
-      - GCP_CREDENTIALS_PATH=credentials/econ-data-pipeline-gcp-credentials.json
+      - GCP_CREDENTIALS_PATH=credentials/gcp-credentials.json
       - PROJECT_ROOT=/usr/local/airflow/project
       - GCS_BUCKET=${GCS_BUCKET}
       - UNDP_API_KEY=${UNDP_API_KEY}
@@ -27,7 +27,7 @@ services:
       - SNOWFLAKE_WAREHOUSE=${SNOWFLAKE_WAREHOUSE}
       - SNOWFLAKE_SCHEMA=${SNOWFLAKE_SCHEMA}
       - SNOWFLAKE_DATABASE=${SNOWFLAKE_DATABASE}
-      - GCP_CREDENTIALS_PATH=credentials/econ-data-pipeline-gcp-credentials.json
+      - GCP_CREDENTIALS_PATH=credentials/gcp-credentials.json
       - PROJECT_ROOT=/usr/local/airflow/project
       - GCS_BUCKET=${GCS_BUCKET}
       - UNDP_API_KEY=${UNDP_API_KEY}
@@ -43,7 +43,7 @@ services:
       - SNOWFLAKE_WAREHOUSE=${SNOWFLAKE_WAREHOUSE}
       - SNOWFLAKE_SCHEMA=${SNOWFLAKE_SCHEMA}
       - SNOWFLAKE_DATABASE=${SNOWFLAKE_DATABASE}
-      - GCP_CREDENTIALS_PATH=credentials/econ-data-pipeline-gcp-credentials.json
+      - GCP_CREDENTIALS_PATH=credentials/gcp-credentials.json
       - PROJECT_ROOT=/usr/local/airflow/project
       - GCS_BUCKET=${GCS_BUCKET}
       - UNDP_API_KEY=${UNDP_API_KEY}
@@ -59,7 +59,7 @@ services:
       - SNOWFLAKE_WAREHOUSE=${SNOWFLAKE_WAREHOUSE}
       - SNOWFLAKE_SCHEMA=${SNOWFLAKE_SCHEMA}
       - SNOWFLAKE_DATABASE=${SNOWFLAKE_DATABASE}
-      - GCP_CREDENTIALS_PATH=credentials/econ-data-pipeline-gcp-credentials.json
+      - GCP_CREDENTIALS_PATH=credentials/gcp-credentials.json
       - PROJECT_ROOT=/usr/local/airflow/project
       - GCS_BUCKET=${GCS_BUCKET}
       - UNDP_API_KEY=${UNDP_API_KEY}
