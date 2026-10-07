@@ -20,6 +20,7 @@ def setup_logging():
         handlers=[logging.StreamHandler(), logging.FileHandler("pipeline.log")],
         level=getattr(logging, log_level)
         )
+logger = logging.getLogger(__name__)
 
 # Snowflake connection setup
 def get_snowflake_connection():
@@ -40,7 +41,6 @@ def get_gcs_client():
 
 #
 # Rety decorator setup
-_logger = logging.getLogger(__name__)
 @retry(
     stop=stop_after_attempt(3),
     wait=wait_exponential(multiplier=1, min=1, max=10),
