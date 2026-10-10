@@ -1,0 +1,14 @@
+version: 2
+
+models:
+  - name: int_trips_joined
+    description: "Trips joined to zone lookup for both pickup and dropoff locations. One row per trip with borough and zone names attached."
+    columns:
+      - name: pickup_datetime
+        description: "Trip pickup timestamp."
+        tests:
+          - not_null
+      - name: pickup_borough
+        description: "Borough where the trip started. Null if location ID has no match in zone lookup."
+      - name: dropoff_borough
+        description: "Borough where the trip ended. Null if location ID has no match in zone lookup."

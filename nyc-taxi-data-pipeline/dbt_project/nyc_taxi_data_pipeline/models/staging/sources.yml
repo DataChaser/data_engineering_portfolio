@@ -1,0 +1,11 @@
+version: 2
+
+sources:
+  - name: raw
+    database: nyc-taxi-pipeline-510807
+    schema: raw
+    tables:
+      - name: raw_trips
+        description: "Raw NYC yellow taxi trip records loaded from TLC parquet files from Sept 2025 onwards"
+      - name: raw_zone_lookup
+        description: "TLC taxi zone lookup table for mapping location IDs to borough and zone names"

@@ -31,15 +31,12 @@ clean-targets:         # directories to be removed by `dbt clean`
 # files using the `{{ config(...) }}` macro.
 models:
   nyc_taxi_data_pipeline:
-    # Config indicated by + and applies to all files under models/example/
     staging:
       +materialized: view
-      +schema: STAGING
-    
+      +schema: staging
     intermediate:
       +materialized: view
-      +schema: INTERMEDIATE
-
-    mart:
+      +schema: staging
+    marts:
       +materialized: table
-      +schema: MART
+      +schema: mart
