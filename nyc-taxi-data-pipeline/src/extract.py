@@ -59,7 +59,9 @@ def upload_zone_lookup(bucket):
     logger.info("Zone lookup uploaded successfully")
 
 
-def run():
+def run(year_month=None):
+    months_to_process = [year_month] if year_month else months
+
     logger.info("Starting extraction to GCS")
 
     client = get_gcs_client()

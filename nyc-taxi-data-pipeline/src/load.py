@@ -95,7 +95,9 @@ def load_zone_lookup(client, table_ref, bucket_name):
     logger.info(f"Zone lookup loaded — {table.num_rows} rows")
 
 
-def run():
+def run(year_month=None):
+    months_to_process = [year_month] if year_month else months
+
     logger.info("Starting BigQuery load")
 
     client = get_bq_client()
