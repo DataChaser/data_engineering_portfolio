@@ -3,6 +3,7 @@ data/
 
 # Credentials
 .env
+credentials/
 
 # Python
 __pycache__/

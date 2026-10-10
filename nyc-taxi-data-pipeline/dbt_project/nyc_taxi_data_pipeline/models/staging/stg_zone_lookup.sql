@@ -1,18 +1,15 @@
-with source as (
+with source as (select * from {{ source('raw', 'raw_zone_lookup') }}),
 
-    select * from {{source('raw', 'raw_zone_lookup')}}
-),
-
-casted as (
-
-    select 
-        try_cast(locationid as integer) as location_id,
-        borough,
-        zone,
+renamed as (
+    
+    select
+        CAST(LocationID as INT64) as location_id,
+        Borough as borough,
+        Zone as zone,
         service_zone
 
     from source
 
 )
 
-select * from casted
+select * from renamed

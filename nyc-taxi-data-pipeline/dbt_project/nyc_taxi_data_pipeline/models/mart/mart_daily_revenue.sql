@@ -1,25 +1,22 @@
 {{
     config(
         materialized='incremental',
-        unique_key=['pickup_date', 'pickup_borough'],
-        incremental_strategy='merge'
+        incremental_strategy='insert_overwrite',
+        partition_by={
+            'field': 'pickup_date',
+            'data_type': 'date',
+            'granularity': 'month'
+        },
+        cluster_by=['pickup_borough']
     )
 }}
 
--- Daily trip volume and revenue by pickup borough. Only processes months and borough combinations not yet in the table.
-
-with joined as (
-    select * from {{ ref('int_trips_joined') }}
-    {% if is_incremental() %}
-    where date_trunc('month', pickup_date) > (
-        select max(date_trunc('month', pickup_date)) from {{ this }})
-    {% endif %}
-),
+with joined as (select * from {{ ref('int_trips_joined') }}),
 
 aggregated as (
+
     select
-        pickup_date,
-        pickup_borough,
+        pickup_date, pickup_borough,
         count(*) as total_trips,
         round(sum(fare_amount), 2) as total_fare_revenue,
         round(sum(tip_amount), 2) as total_tips,
@@ -28,12 +25,13 @@ aggregated as (
         round(avg(tip_amount), 2) as avg_tip,
         round(avg(trip_distance), 2) as avg_distance_miles,
         round(avg(trip_duration_minutes), 1) as avg_duration_minutes
+
     from joined
     where pickup_borough is not null
     group by
         pickup_date,
         pickup_borough
+
 )
 
 select * from aggregated
-order by pickup_date, pickup_borough

@@ -1,0 +1,105 @@
+version: 2
+
+models:
+  - name: stg_trips
+    description: "Cleaned and renamed NYC yellow taxi trip records. One row per trip."
+    columns:
+      - name: vendor_id
+        description: "TPEP provider. 1=Creative Mobile, 2=Curb Mobility, 6=Myle Technologies, 7=Helix."
+        tests:
+          - accepted_values:
+              values: [1, 2, 6, 7]
+              quote: false
+      - name: source_month
+        description: "Month the parquet file was sourced from. Format YYYY-MM."
+        tests:
+          - not_null
+      - name: pickup_datetime
+        description: "Trip pickup timestamp."
+        tests:
+          - not_null
+      - name: dropoff_datetime
+        description: "Trip dropoff timestamp."
+        tests:
+          - not_null
+      - name: pickup_date
+        description: "Date portion of pickup datetime. Used for daily aggregations in marts."
+        tests:
+          - not_null
+      - name: trip_duration_minutes
+        description: "Trip duration in minutes derived from pickup and dropoff timestamps."
+        tests:
+          - not_null
+      - name: passenger_count
+        description: "Number of passengers in the vehicle as reported by the driver."
+      - name: trip_distance
+        description: "Trip distance in miles."
+        tests:
+          - not_null
+      - name: rate_code_id
+        description: "Rate code at end of trip. 1=Standard, 2=JFK, 3=Newark, 4=Nassau/Westchester, 5=Negotiated, 6=Group ride, 99=Unknown."
+        tests:
+          - accepted_values:
+              values: [1, 2, 3, 4, 5, 6, 99]
+              quote: false
+      - name: store_and_fwd_flag
+        description: "Whether trip record was held in vehicle memory before sending to vendor. Y=store and forward, N=not store and forward."
+        tests:
+          - accepted_values:
+              values: ['Y', 'N']
+      - name: pickup_location_id
+        description: "TLC zone ID for pickup location. Joined to stg_zone_lookup in intermediate."
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_zone_lookup')
+                field: location_id
+      - name: dropoff_location_id
+        description: "TLC zone ID for dropoff location."
+      - name: payment_type
+        description: "Payment method. 0=Flex Fare, 1=Credit Card, 2=Cash, 3=No Charge, 4=Dispute, 5=Unknown, 6=Voided."
+        tests:
+          - not_null
+          - accepted_values:
+              values: [0, 1, 2, 3, 4, 5, 6]
+              quote: false
+      - name: fare_amount
+        description: "Metered fare amount."
+        tests:
+          - not_null
+      - name: extra
+        description: "Miscellaneous extras and surcharges."
+      - name: mta_tax
+        description: "MTA tax automatically triggered based on the metered rate in use."
+      - name: tip_amount
+        description: "Tip amount. Auto-populated for credit card tips only. Cash tips not included."
+      - name: tolls_amount
+        description: "Total amount of all tolls paid in trip."
+      - name: improvement_surcharge
+        description: "Improvement surcharge assessed at flag drop. Levied since 2015."
+      - name: total_amount
+        description: "Total amount charged to passenger."
+        tests:
+          - not_null
+      - name: congestion_surcharge
+        description: "Total amount collected for NYS congestion surcharge."
+      - name: airport_fee
+        description: "Airport fee for pickups at LaGuardia and JFK only."
+      - name: cbd_congestion_fee
+        description: "NYC congestion pricing fee. Present from 2025 data onwards."
+
+  - name: stg_zone_lookup
+    description: "TLC zone lookup table. 265 rows mapping location IDs to borough and zone names."
+    columns:
+      - name: location_id
+        description: "Unique zone location ID."
+        tests:
+          - not_null
+          - unique
+      - name: borough
+        description: "NYC borough name."
+      - name: zone
+        description: "Zone name within the borough."
+      - name: service_zone
+        description: "Service zone category."
