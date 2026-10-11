@@ -104,6 +104,8 @@ BQ_DATASET_STAGING=staging
 BQ_DATASET_MART=mart
 ```
 
+Put your GCP service account key file in the credentials folder (or the path you have supplied in `GCP_CREDENTIALS_PATH` in .env).
+
 ### Run the pipeline in Airflow
 
 ```bash

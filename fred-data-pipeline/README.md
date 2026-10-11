@@ -106,6 +106,8 @@ GCP_CREDENTIALS_PATH=
 FRED_API_KEY=
 ```
 
+Put your GCP service account key file in the credentials folder (or the path you have supplied in `GCP_CREDENTIALS_PATH` in .env).
+
 ### Run the pipeline in Airflow
 
 ```bash

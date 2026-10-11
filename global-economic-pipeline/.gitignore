@@ -1,23 +1,16 @@
 .env
 venv/
-credentials/
-
-#dbt
+credentials/*.json
 target/
 dbt_packages/
 logs/
 dbt_project/global_economic_pipeline/profiles.yml
-
 __pycache__/
 *.pyc
 *.pyo
 .DS_Store
 Thumbs.db
-
-# astro / airflow
 .astro/
 airflow_settings.yaml
 tests/
-
-# pipeline log file written by setup_logging()
 pipeline.log
