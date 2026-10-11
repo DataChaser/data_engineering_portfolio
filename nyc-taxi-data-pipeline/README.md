@@ -1,226 +1,149 @@
 # NYC Yellow Taxi Data Pipeline
 
-A production-grade batch data pipeline built for Analytics Engineering and Data Engineering portfolio. Processes NYC TLC Yellow Taxi trip records through a full modern data stack - ingestion, data quality validation, transformation, orchestration, and a live dashboard.
+A batch data pipeline that ingests NYC TLC Yellow Taxi trip records from the TLC public dataset, loads them into BigQuery via GCS, transforms them with dbt, validates data quality with Great Expectations, and is fully orchestrated by Apache Airflow.
 
-**Live Dashboard -> [nyc-taxi-data.streamlit.app](https://nyc-taxi-data.streamlit.app/)**
-
-## Stack
-
-| Layer | Tool |
-|-||
-| Ingestion | Python, pandas, pyarrow |
-| Warehouse | Snowflake |
-| Data Quality | Great Expectations 1.x |
-| Transformation | dbt |
-| Orchestration | Apache Airflow (via Astro CLI) |
-| Dashboard | Streamlit + Plotly |
-
-
-## Dataset
-
-NYC TLC Yellow Taxi Trip Records - Nov 2025, Dec 2025, Jan 2026
-
-- 12,211,339 rows across three months
-- Zone lookup table - 265 rows
-- Source: NYC Taxi and Limousine Commission
+---
 
 ## Architecture
-```
-NYC TLC (Parquet files)
-        │
-        ▼
-  Airflow DAG
-  (orchestrates full pipeline monthly)
-        │
-        ▼
-  Python Ingestion
-        │
-        ▼
-  Snowflake RAW layer
-  RAW_TRIPS | RAW_ZONE_LOOKUP
-        │
-        ▼
-  Great Expectations
-  (16 expectations, 500k row sample)
-        │
-     pass / fail
-        │
-   pass ──────────────────────────────────────────────┐
-        │                                             │
-        ▼                                             ▼
-   dbt build                                   log failure
-   (staging -> intermediate -> marts)            (Snowflake log)
-        │
-        ▼
-  Snowflake MARTS layer
-  mart_daily_revenue
-  mart_pickup_zones
-  mart_payment_summary
-  mart_trip_duration
-        │
-        ▼
-  Streamlit Dashboard
-  (live on Streamlit Cloud)
 
-```
+![Pipeline Architecture](docs/data_pipeline_architecture.png)
 
-## Project Structure
+---
 
-```
-nyc-taxi-data-pipeline/
-├── data/
-│   └── raw/                                  # gitignored - raw data in parquet files
-├── exploration/
-│   └── explore.py                            # data download and data exploration scripts
-├── ingestion/
-│   └── load.py                               # ingestion to Snowflake
-├── expectations/
-│   └── taxi_raw_suite.py                     # Great Expectations validation suite
-├── utils/
-│   └── snowflake_utils.py                    # function created for Snowflake connection
-├── dbt_project/
-│   └── nyc_taxi_data_pipeline/
-│       ├── models/
-│       │   ├── staging/                      # stg_trips, stg_zone_lookup
-│       │   ├── intermediate/                 # int_trips_joined
-│       │   └── marts/                        # four mart models
-│       ├── tests/
-│       │   └── assert_pickup_before_dropoff.sql
-│       ├── macros/
-│       │   └── generate_schema_name.sql
-│       └── models/exposures.yml
-├── dags/
-│   └── taxi_pipeline_dag.py                  # Airflow DAG
-├── streamlit_app/
-│   ├── app.py                                # Streamlit dashboard
-│   └── requirements.txt
-├── assets/
-│   └── airflow_dag.png                       # DAG run screenshot
-├── Dockerfile                                # Astro CLI Docker config file
-├── requirements.txt
-└── README.md
-```
+## Tech Stack
 
+| Layer | Tool | Purpose |
+|---|---|---|
+| Extraction | Python, requests, pyarrow | Download monthly Parquet files from NYC TLC |
+| Storage | Google Cloud Storage | Landing zone for raw Parquet files |
+| Warehouse | BigQuery | Raw and transformed data |
+| Transformation | dbt | Staging/intermediate views + mart models |
+| Data Quality | Great Expectations | Validation checks on staging models |
+| Orchestration | Apache Airflow (Astro CLI) | Scheduled DAG, runs 1st of every month at midnight |
+| CI | GitHub Actions | Ruff lint + dbt parse on every push |
 
-## Pipeline Details
+---
 
-### Ingestion
+## Pipeline
 
-`ingestion/load.py` loads monthly parquet files into Snowflake using pyarrow row group chunking - reads one row group at a time rather than loading the entire file into memory. Idempotent - checks if a month is already loaded before inserting, so running the script twice produces the same result.
+The DAG runs automatically on the 1st of every month at midnight, processing the previous month's data.
 
-### Data Quality
+### 1. Extract and Load
 
-Great Expectations 1.x suite with 16 expectations across the raw trips table:
+A download script fetches the previous month's Parquet file from the NYC TLC public dataset and uploads it to Google Cloud Storage. A load script then runs a BigQuery load job from GCS into the RAW layer, alongside the zone lookup table. Ingestion is idempotent, that is, if a month data is already loaded, the script skips it.
 
-- Not null checks on 10 columns
-- Timestamp ordering (pickup before dropoff) - mostly=0.97
-- Fare amount range - mostly=0.88
-- Trip distance range - mostly=0.95
-- RatecodeID accepted values
-- Row count between 2M and 6M per month
-- Column existence checks
+### 2. dbt Staging
 
-Runs on a 500k row TABLESAMPLE of RAW_TRIPS for performance.
+Builds two views on top of the RAW tables. `stg_trips` casts types, renames columns, and adds `pickup_date` and `trip_duration_minutes` as derived columns. `stg_zone_lookup` does a casts and renames certain variables on the zone reference table. dbt tests run after staging to validate the output. Then an intermediate model joins `stg_trips` to `stg_zone_lookup` on both pickup and dropoff location IDs, adding borough and zone names to every trip row.
 
-### dbt Transformation
+### 3. Great Expectations Validation
 
-Three-layer dbt project:
+Runs 3 checks against the staging models filtered to the month in question before the mart is built:
 
-**Staging** - views, thin cleanup layer. Casts types, renames columns, adds `pickup_date` and `trip_duration_minutes` derived columns.
+- Row count between 3M and 7M
+- Required columns present
+- Median fare amount between $5 and $50
 
-**Intermediate** - view, joins trips to zone lookup on both pickup and dropoff location IDs. Adds borough and zone names to every trip row.
+If any check fails the pipeline branches to a `validation_failed` task and the mart is never built. Bad data never reaches the analytical layer.
 
-**Marts** - four models, two incremental and two full table refresh:
+### 4. dbt Mart
 
-46 dbt tests passing across all layers including not null, unique, accepted values, referential integrity, and a custom singular test asserting pickup before dropoff.
+Four mart models are built on top, all materialised as tables: `mart_daily_revenue` aggregated by pickup date and borough, `mart_trip_duration` aggregated by trip date and borough, `mart_pickup_zones` aggregated by pickup zone and hour of day, and `mart_payment_summary` aggregated by payment type. 
 
-### Orchestration
+### 5. dbt tests
 
-Monthly Airflow DAG (`0 0 1 * *`) orchestrated via Astro CLI. Runs at 12am on 1st of every month.
+33 dbt tests pass across all layers covering not null, unique, accepted values, and referential integrity.
 
-### Dashboard
+---
 
-Four charts on a single Streamlit page:
+## Data
 
-- Daily revenue trend by borough - line chart with borough filter
-- Top pickup zones by hour of day - heatmap (top 20 zones, filterable by borough)
-- Payment type breakdown - trip volume and tip rate side by side
-- Average vs median trip duration by borough - grouped bar showing outlier skew
+- **Approx 50 million rows** across 12 months, from Sep 2025 to Aug 2026
+- **Zone lookup table**: 265 rows covering all NYC taxi zones and boroughs
+- Source: [NYC Taxi and Limousine Commission](https://www.nyc.gov/site/tlc/about/tlc-trip-record-data.page)
 
-## Airflow DAG Run
-
-All tasks green end to end:
-
-![Airflow DAG](assets/airflow_dag.png)
-
+---
 
 ## Running Locally
 
 ### Prerequisites
 
-- Python 3.13
-- Snowflake account
+Before running this project you will need:
+
+- Python 3.13+
 - Docker Desktop
-- Astro CLI
+- [Astro CLI](https://docs.astronomer.io/astro/cli/install-cli) for running Airflow locally
+- A [GCP](https://cloud.google.com) service account with GCS read/write and BigQuery access, and a GCS bucket created
 
 ### Setup
 
 Clone the repo:
 
-```powershell
-git clone https://github.com/DataChaser/data_engineering_portfolio.git
-cd data_engineering_portfolio\nyc-taxi-data-pipeline
+```bash
+git clone https://github.com/DataChaser/data_engineering_portfolio
+cd nyc-taxi-data-pipeline
 ```
 
-Create `.env` file in project root and copy contents from `.env.sample` into it
+Copy the sample environment file and fill in your credentials:
 
-Install dependencies:
-
-```powershell
-pip install -r requirements.txt
+```bash
+# on Mac/Linux
+cp .env.example .env
+# on Windows
+copy .env.example .env
 ```
 
-### Ingestion
+Open `.env` and fill in:
 
-```powershell
-python -m ingestion.load
+```
+GCP_PROJECT_ID=
+GCS_BUCKET_NAME=
+GCP_CREDENTIALS_PATH=
+BQ_DATASET_RAW=raw
+BQ_DATASET_STAGING=staging
+BQ_DATASET_MART=mart
 ```
 
-### Data Quality
+### Run the pipeline in Airflow
 
-```powershell
-python -m expectations.taxi_raw_suite
-```
-
-### dbt
-
-```powershell
-cd dbt_project\nyc_taxi_data_pipeline
-dbt build --full-refresh
-```
-
-### Airflow
-
-```powershell
+```bash
 astro dev start
 ```
 
-Open `http://localhost:8080`, toggle on `taxi_data_pipeline`, trigger manually.
+Open `http://localhost:8080`, trigger the `nyc_taxi_pipeline` DAG manually. This will run the full pipeline from downloading the data to building and testing the mart models. If any part of the pipeline fails or the data validation checks fail, the pipeline stops.
 
-### Streamlit
+### To run the extract and load scripts directly
 
-```powershell
-cd streamlit_app
-pip install -r requirements.txt
-streamlit run app.py
+```bash
+python src/extract.py
+python src/load.py
 ```
+
+### To run the validation directly
+
+```bash
+python src/validate.py
+```
+
+---
+
+## CI
+
+Every pull request to `main` runs two checks automatically:
+
+- **Ruff lint**: Checks `src/` and `dags/` for syntax errors, unused imports, undefined variables, and f-string errors
+- **dbt parse**: Validates all SQL models and Jinja templating without connecting to BigQuery
+
+---
 
 ## Key Design Decisions
 
-**Chunked ingestion** - pyarrow row group reading keeps memory usage constant regardless of file size. Handles 4M+ row monthly files on a machine with limited RAM.
+**GCS as a landing zone**: Raw Parquet files land in GCS before BigQuery. If anything fails downstream, the source files are always there to replay from without re-hitting the TLC dataset.
 
-**Incremental marts where appropriate** - only applied where a date dimension exists and new data adds new rows. All-time aggregations stay as full table refresh to avoid incorrect results.
+**Incremental marts where appropriate**: only applied where a date dimension exists and new data adds new rows. All-time aggregations stay as full table refresh to avoid incorrect results.
 
-**GX quality gate** - dbt only runs if validation passes. Failures are logged to Snowflake. Prevents bad data from propagating into the mart layer.
+**Great Expectations validation after staging**: Great Expectations runs between staging and mart. If validation fails, the pipeline stops and the mart is never built. Bad data is caught before it reaches the analytical layer. An additional layer of dbt tests is implemented at the staging and mart layers.
 
-**Idempotent ingestion** - running the pipeline multiple times for the same month produces the same result. Safe to rerun without manual cleanup.
+**Idempotent ingestion** : Running the pipeline multiple times for the same month produces the same result. Safe to rerun without manual cleanup.
+
+---

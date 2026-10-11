@@ -146,6 +146,6 @@ Every pull request to `main` runs two checks automatically:
 
 - **Long format mart**: The mart stores one row per country per indicator per year rather than a wide pivoted table. Adding or removing an indicator requires only a CSV change — no SQL changes needed.
 
-- **GX Validation after staging**: Great Expectations runs between staging and mart. If validation fails, the pipeline stops and the mart is never built. Bad data is caught before it reaches the analytical layer. An additional layer of dbt tests is implemented at the staging and mart layer.
+- **Great Expectations Validation after staging**: Great Expectations runs between staging and mart. If validation fails, the pipeline stops and the mart is never built. Bad data is caught before it reaches the analytical layer. An additional layer of dbt tests is implemented at the staging and mart layer.
 
 - **Indicators and countries managed via CSV**: Any person or team in charge of data coverage can add or remove an indicator from `mapping/indicators.csv` or a country from `mapping/countries.csv`. No code changes needed.
