@@ -1,52 +1,49 @@
-with trips as (
+with trips as (select * from {{ ref('stg_trips') }}),
 
-    select * from {{ ref('stg_trips') }}
-
-),
-
-zones as (
-
-    select * from {{ ref('stg_zone_lookup') }}
-
-),
+zones as (select * from {{ ref('stg_zone_lookup') }}),
 
 joined as (
 
     select
-        trips.vendor_id,
-        trips.pickup_datetime,
-        trips.dropoff_datetime,
-        trips.pickup_date,
-        trips.trip_duration_minutes,
-        trips.passenger_count,
-        trips.trip_distance,
-        trips.pickup_location_id,
-        trips.dropoff_location_id,
-        trips.rate_code_id,
-        trips.payment_type,
-        trips.fare_amount,
-        trips.extra,
-        trips.mta_tax,
-        trips.tip_amount,
-        trips.tolls_amount,
-        trips.improvement_surcharge,
-        trips.total_amount,
-        trips.congestion_surcharge,
-        trips.airport_fee,
-        trips.cbd_congestion_fee,
-        trips.store_and_fwd_flag,
-        trips.source_month,
-        pickup_zones.borough  as pickup_borough,
-        pickup_zones.zone as pickup_zone,
-        pickup_zones.service_zone  as pickup_service_zone,
-        dropoff_zones.borough as dropoff_borough,
-        dropoff_zones.zone as dropoff_zone,
-        dropoff_zones.service_zone as dropoff_service_zone
-    from trips
-    left join zones as pickup_zones
-        on trips.pickup_location_id = pickup_zones.location_id
-    left join zones as dropoff_zones
-        on trips.dropoff_location_id = dropoff_zones.location_id
+
+        t.vendor_id,
+        t.source_month,
+        t.pickup_datetime,
+        t.dropoff_datetime,
+        t.pickup_date,
+        t.trip_duration_minutes,
+        t.passenger_count,
+        t.trip_distance,
+        t.rate_code_id,
+        t.payment_type,
+        t.fare_amount,
+        t.tip_amount,
+        t.total_amount,
+        t.congestion_surcharge,
+        t.cbd_congestion_fee,
+        t.pickup_location_id,
+        p.borough as pickup_borough,
+        p.zone as pickup_zone,
+        p.service_zone as pickup_service_zone,
+
+        -- Dropoff location — second join on dropoff_location_id
+        t.dropoff_location_id,
+        d.borough as dropoff_borough,
+        d.zone as dropoff_zone,
+        d.service_zone as dropoff_service_zone
+
+    from trips t
+
+    left join zones p
+        on t.pickup_location_id = p.location_id
+
+    left join zones d
+        on t.dropoff_location_id = d.location_id
+
+    where t.fare_amount >= 0
+      and t.trip_distance >= 0
+      and t.trip_duration_minutes >= 0
+      and t.pickup_datetime < t.dropoff_datetime
 
 )
 

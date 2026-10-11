@@ -1,0 +1,83 @@
+version: 2
+
+models:
+  - name: mart_daily_revenue
+    description: "Daily trip volume and revenue by pickup borough. Incremental. New months appended via insert_overwrite."
+    columns:
+      - name: pickup_date
+        description: "Date of trip pickup."
+        tests:
+          - not_null
+      - name: pickup_borough
+        description: "Borough where trip started."
+        tests:
+          - not_null
+      - name: total_trips
+        description: "Number of trips on this date in this borough."
+        tests:
+          - not_null
+      - name: total_revenue
+        description: "Sum of total_amount for all trips."
+        tests:
+          - not_null
+
+  - name: mart_trip_duration
+    description: "Daily average and median trip duration by pickup borough. Trips between 1 and 180 minutes only. Incremental."
+    columns:
+      - name: trip_date
+        description: "Date of the trip (pickup date)."
+        tests:
+          - not_null
+      - name: pickup_borough
+        description: "Borough where the trip started."
+        tests:
+          - not_null
+      - name: total_trips
+        description: "Number of trips for this borough and date."
+        tests:
+          - not_null
+      - name: avg_duration_minutes
+        description: "Average trip duration in minutes."
+      - name: avg_distance_miles
+        description: "Average trip distance in miles."
+      - name: min_duration_minutes
+        description: "Shortest trip duration for this borough and date."
+      - name: max_duration_minutes
+        description: "Longest trip duration for this borough and date."
+
+  - name: mart_pickup_zones
+    description: "Trip volume and average metrics by pickup zone and hour of day. Aggregated across all time. Full table refresh."
+    columns:
+      - name: pickup_borough
+        description: "Borough where trip started."
+        tests:
+          - not_null
+      - name: pickup_zone
+        description: "Zone where trip started."
+        tests:
+          - not_null
+      - name: hour_of_day
+        description: "Hour of pickup (0-23)."
+        tests:
+          - not_null
+      - name: total_trips
+        description: "Number of trips for this zone and hour."
+        tests:
+          - not_null
+
+  - name: mart_payment_summary
+    description: "Trip and revenue summary by payment type. Aggregated across all time. Full table refresh."
+    columns:
+      - name: payment_type
+        description: "Numeric payment type code."
+        tests:
+          - not_null
+          - unique
+      - name: payment_label
+        description: "Human readable payment type label."
+        tests:
+          - not_null
+      - name: total_trips
+        description: "Number of trips for this payment type."
+        tests:
+          - not_null

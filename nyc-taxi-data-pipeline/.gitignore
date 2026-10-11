@@ -1,26 +1,17 @@
-# Raw data
-data/
-
-# Credentials
 .env
-
-# Python
+credentials/
 __pycache__/
 *.pyc
 .venv/
 venv/
-
-# dbt
-dbt_project/target/
+dbt_project/nyc_taxi_data_pipeline/target/
 dbt_project/logs/
-dbt_project/.user.yml
+dbt_project/nyc_taxi_data_pipeline/logs
+dbt_project/nyc_taxi_data_pipeline/.user.yml
 dbt_project/nyc_taxi_data_pipeline/profiles.yml
-
-# Airflow
 logs/
 airflow.db
 airflow.cfg
-
-# Astro
 .astro/
 airflow_settings.yaml
+pipeline.log
