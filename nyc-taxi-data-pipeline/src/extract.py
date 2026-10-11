@@ -68,10 +68,9 @@ def run(year_month=None):
     bucket = client.bucket(os.getenv("GCS_BUCKET_NAME"))
 
     uploaded = 0
-    skipped = 0
     failed = []
 
-    for year_month in months:
+    for year_month in months_to_process:
         try:
             upload_trip_file(bucket, year_month)
             uploaded += 1

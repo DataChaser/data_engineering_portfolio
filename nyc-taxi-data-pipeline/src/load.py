@@ -2,7 +2,6 @@ import os
 import logging
 import gcsfs
 import pyarrow.parquet as pq
-import pandas as pd
 from dotenv import load_dotenv
 from google.cloud import bigquery
 from utils import setup_logging, get_bq_client
@@ -108,7 +107,7 @@ def run(year_month=None):
     skipped = 0
     failed = []
 
-    for year_month in months:
+    for year_month in months_to_process:
         if month_already_loaded(client, table_refs["trips"], year_month):
             logger.info(f"{year_month} already loaded in BigQuery. Skipping")
             skipped += 1
