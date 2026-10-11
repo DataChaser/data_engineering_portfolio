@@ -5,7 +5,7 @@ __pycache__/
 dbt_project/target/
 dbt_project/dbt_packages/
 dbt_project/logs/
-credentials/
+credentials/*.json
 airflow_settings.yaml
 pipeline.log
 .astro/
