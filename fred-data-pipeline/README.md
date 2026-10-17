@@ -38,9 +38,9 @@ Builds a view on top of the raw table with cleaned column names, correct data ty
 
 ### 3. Great Expectations Validation
 
-Runs 5 checks against the staging table before the mart is built:
+Runs 4 of checks against the staging table before the mart is built:
 
-- Row count > 0
+- Row count
 - Required columns present
 - No nulls on `observation_date` and `series_id`
 - `frequency` values are acceptable
