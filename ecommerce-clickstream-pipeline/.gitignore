@@ -1,0 +1,8 @@
+.env
+venv/
+__pycache__/
+*.pyc
+credentials/*.json
+*.csv
+*.csv.gz
+test_gcs.py
