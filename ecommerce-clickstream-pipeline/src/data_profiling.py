@@ -66,7 +66,7 @@ df.select(
 print('Number of rows with price <= 0', df.filter(f.col("price") <= 0).count())
 # Checking which event_type 0 or less than 0 price belongs in
 df.filter(f.col("price") <= 0).groupBy("event_type").count().show()
-df.filter(f.col("price") <= 0).show(5, truncate=False)
+df.filter(f.col("price") <= 0).show(10, truncate=False)
 
 # 5. Timetamps check
 print("==== 5. Timestamp checks")
@@ -79,7 +79,7 @@ with_ts.select(f.min("event_ts"), f.max("event_ts")).show(truncate=False)
 
 # 6. Duplicate row checks
 print("==== 6. Duplicate rows check")
-print("Exact duplicate rows:", total_rows - df.dropDuplicates().count())
+print("Duplicate rows:", total_rows - df.dropDuplicates().count())
 
 # Stop spark session
 spark.stop()
