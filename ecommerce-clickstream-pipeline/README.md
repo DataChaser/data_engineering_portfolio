@@ -120,6 +120,8 @@ GCP_CREDENTIALS_PATH=
 
 Put your GCP service account key file in the credentials folder (or the path you have supplied in `GCP_CREDENTIALS_PATH` in .env). The path is relative to the project root, for example `credentials/key.json`.
 
+Both SQL files (`src/silver-external-table.sql `and `src/load-gold-tables.sql`) have the project, dataset and bucket names written in. Replace them with your own before running the pipeline.
+
 Upload the raw files, and the Spark scripts so Google can run them:
 
 ```bash
